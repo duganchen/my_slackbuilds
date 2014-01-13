@@ -11,6 +11,6 @@ MD5SUM="b1c490a8a4cd0ed7b5f93f9635856284 \
         d696bbac1e408062ff7885f67965c4a4"
 DOWNLOAD_x86_64=""
 MD5SUM_x86_64=""
-REQUIRES="OpenAL"
+REQUIRES="OpenAL SDL2"
 MAINTAINER="Dugan Chen"
 EMAIL="thedoogster [at] gmail [dot] com"
