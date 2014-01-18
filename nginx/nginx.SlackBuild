@@ -83,6 +83,8 @@ else
     SPDY_MOD=""
 fi
 
+patch -p1 --verbose < $CWD/ngdocs.patch
+
 CFLAGS="$SLKCFLAGS" \
 CXXFLAGS="$SLKCFLAGS" \
 ./configure \
@@ -128,7 +130,10 @@ find $PKG -perm 555 -exec chmod 0755 {} \;
 
 # Remove some other empty and/or unnecessary directories from the package
 eval $(perl '-V:archlib')
-rm -rf $PKG/$archlib $PKG/usr/html $PKG/var
+rm -rf $PKG/$archlib $PKG/var
+
+mkdir -p $PKG/var/www
+mv $PKG/usr/html $PKG/var/www/ngdocs
 
 # Add an init script
 mkdir -p $PKG/etc/rc.d
