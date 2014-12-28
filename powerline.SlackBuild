@@ -6,7 +6,8 @@ REPO=https://github.com/powerline/powerline.git
 PRGNAM="$(basename $REPO .git)"
 TMP="${TMP:-/tmp}"
 PKG="$TMP/package-$PRGNAM"
-BUILD=1dc
+BUILD=1
+TAG=dc
 
 rm -rf "$PKG"
 rm -rf "$TMP/$PRGNAM"
@@ -47,4 +48,4 @@ mkdir -p "$PKG/install"
 echo fc-cache -f -v > "$PKG/install/doinst.sh"
 
 cd "$PKG"
-/sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-noarch-${BUILD}.txz"
+/sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-noarch-${BUILD}${TAG}.txz"
