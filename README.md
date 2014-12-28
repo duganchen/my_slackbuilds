@@ -1,4 +1,6 @@
 my_slackbuilds
 ==============
 
-My SlackBuilds. The ones I maintain, and forks of certain SlackBuilds from SBo.
+My SlackBuilds. These pull, package and version directly from git. Just
+run them.
+
