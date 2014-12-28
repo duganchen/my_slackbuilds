@@ -5,7 +5,7 @@ set -e
 
 REPO=https://github.com/duganchen/wine_env.git
 PRGNAM="$(basename $REPO .git)"
-TMP=${TMP:-/tmp}
+TMP="${TMP:-/tmp}"
 PKG="$TMP/package-$PRGNAM"
 BUILD=1dc
 
