@@ -28,8 +28,24 @@ find -L . \
 
 python setup.py install --root="$PKG"
 
-find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+mkdir -p "$PKG/usr/share/fonts/OTF"
+cp font/PowerlineSymbols.otf "$PKG/usr/share/fonts/OTF"
+
+mkdir -p "$PKG/etc/fonts/conf.avail"
+cp font/10-powerline-symbols.conf "$PKG/etc/fonts/conf.avail"
+
+mkdir -p $PKG/etc/fonts/conf.d
+
+(
+	cd $PKG/etc/fonts/conf.d
+	ln -s ../conf.avail/10-powerline-symbols.conf
+)
+
+find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
   | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
-cd $PKG
+mkdir -p "$PKG/install"
+echo fc-cache -f -v > "$PKG/install/doinst.sh"
+
+cd "$PKG"
 /sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-noarch-${BUILD}.txz"
