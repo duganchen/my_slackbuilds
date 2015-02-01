@@ -39,11 +39,17 @@ rm -rf "$TMP/$SRC"
 
 mkdir -p "$PKG"
 
+CWD="$( pwd )"
+
 cd "$TMP"
 git clone "$REPO"
 cd "$SRC"
 
 VERSION="$( git rev-parse --short HEAD )"
+
+# As of Feb 1, the master branch crashes on start becase of libusb
+# issues. Remove this patch when it's fixed.
+patch < "$CWD/dolphin_no_libusb.patch"
 
 chown -R root:root .
 find -L . \
@@ -67,8 +73,18 @@ make VERBOSE=1
 make install DESTDIR="$PKG"
 cd "$TMP/$SRC"
 
-find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
-	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+# find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+# 	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+for i in 16 32 48 64 128; do
+  convert Installer/Dolphin.ico -resize "${i}x${i}!" "$PRGNAM-${i}.png"
+  install -D -m 0644 "$PRGNAM-${i}-3.png" \
+    "$PKG/usr/share/icons/hicolor/${i}x${i}/apps/$PRGNAM.png"
+done
+
+# Remove unnecessary files/directories.
+rm -rf "$PKG/usr/lib${LIBDIRSUFFIX}/libpolarssl.a"
+find "$PKG" -type d -empty -delete
 
 cd "$PKG"
 /sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-$ARCH-${BUILD}${TAG}.txz"

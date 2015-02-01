@@ -1,0 +1,16 @@
+--- CMakeLists.txt.old	2015-02-01 11:34:09.230963805 -0800
++++ CMakeLists.txt	2015-02-01 11:34:21.180964706 -0800
+@@ -600,13 +600,6 @@
+ 	endif(SDL2_FOUND)
+ endif()
+
+-include(FindLibUSB OPTIONAL)
+-if(LIBUSB_FOUND)
+-	message("Using shared LibUSB")
+-	add_definitions(-D__LIBUSB__)
+-	include_directories(${LIBUSB_INCLUDE_DIR})
+-endif(LIBUSB_FOUND)
+-
+ set(SFML_REQD_VERSION 2.1)
+ if(NOT APPLE AND NOT ANDROID)
+ 	find_package(SFML ${SFML_REQD_VERSION} COMPONENTS network system)
