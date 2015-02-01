@@ -70,11 +70,10 @@ mv $PKG/usr/share/doc $PKG/usr
 find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
 	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
-# mv "$PKG/usr/share/man" "$PKG/usr/man"
-# find "$PKG/usr/man" -type f -exec gzip -9 {} \;
-# find "$PKG/usr/man" -type l \
-# 	-exec ln -s "$( readlink {} ).gz" {}.gz \
-# 	-exec rm {} \;
+find "$PKG/usr/man" -type f -exec gzip -9 {} \;
+find "$PKG/usr/man" -type l \
+	-exec ln -s "$( readlink {} ).gz" {}.gz \
+	-exec rm {} \;
 
 cd "$PKG"
 /sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-$ARCH-${BUILD}${TAG}.txz"
