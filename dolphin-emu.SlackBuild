@@ -2,8 +2,8 @@
 
 set -e
 
-$PRGNAM="dolphin-emu"
-$SRC="dolphin"
+PRGNAM="dolphin-emu"
+SRC="dolphin"
 REPO="https://github.com/${PRGNAM}/${SRC}.git"
 TMP="${TMP:-/tmp}"
 PKG="$TMP/package-$PRGNAM"
