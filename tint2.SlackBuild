@@ -60,7 +60,6 @@ cmake .. \
 
 CFLAGS="$SLKCFLAGS" \
 CXXFLAGS="$SLKCFLAGS" \
-LDFLAGS="-L/usr/lib${LIBDIRSUFFIX}"
 make
 make install DESTDIR="$PKG"
 cd -
