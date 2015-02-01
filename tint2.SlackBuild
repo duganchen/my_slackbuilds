@@ -37,7 +37,7 @@ rm -rf "$TMP/$PRGNAM"
 
 mkdir -p "$PKG"
 cd "$TMP"
-svn co "http://tint2.googlecode.com/svn/trunk/" "$PRGNAM"
+svn co "http://${PRGNAM}.googlecode.com/svn/trunk/" "$PRGNAM"
 cd "$PRGNAM"
 
 VERSION="r$( svnversion )"
