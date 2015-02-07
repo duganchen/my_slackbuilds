@@ -1,6 +1,4 @@
-#!/bin/sh
-
-set -e
+#!//usr/bin/env zsh
 
 PRGNAM="dolphin-emu"
 SRC="dolphin"
@@ -11,35 +9,39 @@ BUILD=1
 TAG=dc
 
 # Automatically determine the architecture we're building on:
-if [ -z "$ARCH" ]; then
+if [[ -z $ARCH ]]; then
 	case "$( uname -m )" in
 		i?86) ARCH=i486 ;;
 		arm*) ARCH=arm ;;
-		# Unless $ARCH is already set, use uname -m for all other archs:
 		*) ARCH="$( uname -m )" ;;
 	esac
 fi
 
-if [ "$ARCH" = "i486" ]; then
-	SLKCFLAGS="-O2 -march=i486 -mtune=i686"
-	LIBDIRSUFFIX=""
-elif [ "$ARCH" = "i686" ]; then
-	SLKCFLAGS="-O2 -march=i686 -mtune=i686"
-	LIBDIRSUFFIX=""
-elif [ "$ARCH" = "x86_64" ]; then
-	SLKCFLAGS="-O2 -fPIC"
-	LIBDIRSUFFIX="64"
-else
-	SLKCFLAGS="-O2"
-	LIBDIRSUFFIX=""
-fi
+case $ARCH in
+
+	"i486")
+		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+
+	"i686")
+		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+
+	*)
+	 	SLKCFLAGS="-O2"
+		LIBDIRSUFFIX=""
+		;;
+esac
+
 
 rm -rf "$PKG"
 rm -rf "$TMP/$SRC"
 
 mkdir -p "$PKG"
 
-CWD="$( pwd )"
+CWD=$PWD
 
 cd "$TMP"
 git clone "$REPO"
@@ -49,6 +51,7 @@ VERSION="$( git rev-parse --short HEAD )"
 
 # As of Feb 1, the master branch crashes on start becase of libusb
 # issues. Remove this patch when it's fixed.
+# See: https://forums.dolphin-emu.org/Thread-dolphin-4-0-5234-x64-and-newer-crashing-on-startup
 patch < "$CWD/dolphin_no_libusb.patch"
 
 chown -R root:root .
@@ -69,12 +72,14 @@ cmake -G "Unix Makefiles" \
  -DCMAKE_CXX_FLAGS:STRING="$SLKCFLAGS" \
  -DCMAKE_BUILD_TYPE=Release ..
 
-make VERBOSE=1
+make
 make install DESTDIR="$PKG"
 cd "$TMP/$SRC"
 
-# find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
-# 	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+ find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+ 	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+# Credit to the SlackBuilds.org maintainer for this:
 
 for i in 16 32 48 64 128; do
   convert Installer/Dolphin.ico -resize "${i}x${i}!" "$PRGNAM-${i}.png"
