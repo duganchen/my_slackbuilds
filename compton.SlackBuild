@@ -1,6 +1,4 @@
-#!/bin/sh
-
-set -e
+#!/bin/env zsh
 
 REPO=https://github.com/chjj/compton.git
 PRGNAM="$(basename $REPO .git)"
@@ -10,28 +8,28 @@ BUILD=1
 TAG=dc
 
 # Automatically determine the architecture we're building on:
-if [ -z "$ARCH" ]; then
+if [[ -z $ARCH ]]; then
 	case "$( uname -m )" in
 		i?86) ARCH=i486 ;;
 		arm*) ARCH=arm ;;
-		# Unless $ARCH is already set, use uname -m for all other archs:
 		*) ARCH="$( uname -m )" ;;
 	esac
 fi
 
-if [ "$ARCH" = "i486" ]; then
-	SLKCFLAGS="-O2 -march=i486 -mtune=i686"
-	LIBDIRSUFFIX=""
-elif [ "$ARCH" = "i686" ]; then
-	SLKCFLAGS="-O2 -march=i686 -mtune=i686"
-	LIBDIRSUFFIX=""
-elif [ "$ARCH" = "x86_64" ]; then
-	SLKCFLAGS="-O2 -fPIC"
-	LIBDIRSUFFIX="64"
-else
-	SLKCFLAGS="-O2"
-	LIBDIRSUFFIX=""
-fi
+case $ARCH in
+	"i486")
+		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"i686")
+		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	*)
+	 	SLKCFLAGS="-O2"
+		LIBDIRSUFFIX=""
+		;;
+esac
 
 rm -rf "$PKG"
 rm -rf "$TMP/$PRGNAM"
@@ -50,17 +48,18 @@ find -L . \
 	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
 	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
-CFLAGS="$SLKCFLAGS" CXXFLAGS="$SLKCFLAGS" make
+CFLAGS="$SLKCFLAGS" \
+ CXXFLAGS="$SLKCFLAGS" \
+ make
 make install DESTDIR="$PKG"
 
 find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
 	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
 mv "$PKG/usr/share/man" "$PKG/usr/man"
-find "$PKG/usr/man" -type f -exec gzip -9 {} \;
-find "$PKG/usr/man" -type l \
-	-exec ln -s "$( readlink {} ).gz" {}.gz \
-	-exec rm {} \;
+for m in "$PKG/usr/man/"**/*; do
+	gzip -9 "$m"
+done
 
 cd "$PKG"
 /sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-$ARCH-${BUILD}${TAG}.txz"
