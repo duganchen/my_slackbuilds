@@ -18,17 +18,14 @@ if [[ -z $ARCH ]]; then
 fi
 
 case $ARCH in
-
 	"i486")
 		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
 		LIBDIRSUFFIX=""
 		;;
-
 	"i686")
 		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
 		LIBDIRSUFFIX=""
 		;;
-
 	*)
 	 	SLKCFLAGS="-O2"
 		LIBDIRSUFFIX=""
