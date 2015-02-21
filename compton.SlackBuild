@@ -1,18 +1,18 @@
 #!/bin/env zsh
 
 REPO=https://github.com/chjj/compton.git
-PRGNAM="$(basename $REPO .git)"
-TMP="${TMP:-/tmp}"
-PKG="$TMP/package-$PRGNAM"
+PRGNAM=$(basename $REPO .git)
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-$PRGNAM
 BUILD=1
 TAG=dc
 
 # Automatically determine the architecture we're building on:
 if [[ -z $ARCH ]]; then
-	case "$( uname -m )" in
+	case $( uname -m ) in
 		i?86) ARCH=i486 ;;
 		arm*) ARCH=arm ;;
-		*) ARCH="$( uname -m )" ;;
+		*) ARCH=$( uname -m ) ;;
 	esac
 fi
 
@@ -31,15 +31,15 @@ case $ARCH in
 		;;
 esac
 
-rm -rf "$PKG"
-rm -rf "$TMP/$PRGNAM"
+rm -rf $PKG
+rm -rf $TMP/$PRGNAM
 
-mkdir -p "$PKG"
-cd "$TMP"
-git clone "$REPO"
-cd "$PRGNAM"
+mkdir -p $PKG
+cd $TMP
+git clone $REPO
+cd $PRGNAM
 
-VERSION="$( git rev-parse --short HEAD )"
+VERSION=$( git rev-parse --short HEAD )
 
 chown -R root:root .
 find -L . \
@@ -48,18 +48,18 @@ find -L . \
 	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
 	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
-CFLAGS="$SLKCFLAGS" \
- CXXFLAGS="$SLKCFLAGS" \
+CFLAGS=$SLKCFLAGS \
+ CXXFLAGS=$SLKCFLAGS \
  make
-make install DESTDIR="$PKG"
+make install DESTDIR=$PKG
 
-find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
 	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
-mv "$PKG/usr/share/man" "$PKG/usr/man"
-for m in "$PKG/usr/man/"**/*; do
-	gzip -9 "$m"
+mv $PKG/usr/share/man $PKG/usr/man
+for m in $PKG/usr/man/**/*; do
+	gzip -9 $m
 done
 
-cd "$PKG"
-/sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-$ARCH-${BUILD}${TAG}.txz"
+cd $PKG
+/sbin/makepkg -l y -c n $TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.txz
