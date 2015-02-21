@@ -19,7 +19,7 @@ fi
 if [[ $ARCH == "i486" ]]; then
 	SLKCFLAGS="-O2 -march=i486 -mtune=i686"
 	LIBDIRSUFFIX=""
-elif [[ "$ARCH" == "i686" ]]; then
+elif [[ $ARCH == "i686" ]]; then
 	SLKCFLAGS="-O2 -march=i686 -mtune=i686"
 	LIBDIRSUFFIX=""
 elif [[ $ARCH == "x86_64" ]]; then
@@ -31,7 +31,7 @@ else
 fi
 
 rm -rf $PKG
-rm -rf "$TMP/$PRGNAM"
+rm -rf $TMP/$PRGNAM
 
 mkdir -p $PKG
 cd $TMP
@@ -50,7 +50,6 @@ find -L . \
 mkdir build
 cd build
 
-# tint2conf won't build for me. Anyone want to look into this?
 cmake .. \
 	-DCMAKE_INSTALL_PREFIX=/usr \
 	-DMANDIR=/usr/man
