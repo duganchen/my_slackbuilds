@@ -1,23 +1,30 @@
-#!/bin/sh
+#!/usr/bin/env zsh
 
-set -e
-
-REPO=https://github.com/duganchen/wine_env.git
-PRGNAM="$(basename $REPO .git)"
-TMP="${TMP:-/tmp}"
-PKG="$TMP/package-$PRGNAM"
+UPSTREAM=https://github.com/duganchen/wine_env.git
+REPO=$(basename $UPSTREAM .git)
+PRGNAM=wine_env
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-$PRGNAM
 BUILD=1
 TAG=dc
 
-rm -rf "$PKG"
-rm -rf "$TMP/$PRGNAM"
+rm -rf $PKG
+rm -rf $TMP/$REPO
 
-mkdir -p "$PKG"
-cd "$TMP"
-git clone "$REPO"
-cd "$PRGNAM"
+mkdir -p $PKG
+cd $TMP
+git clone $UPSTREAM
+cd $REPO
 
-VERSION="$( git rev-parse --short HEAD )"
+VERSION=SH$( git rev-parse --short HEAD )
+
+if [[ -z $ARCH ]]; then
+	case "$( uname -m )" in
+		i?86) ARCH=i486 ;;
+		arm*) ARCH=arm ;;
+		*) ARCH="$( uname -m )" ;;
+	esac
+fi
 
 chown -R root:root .
 find -L . \
@@ -26,10 +33,10 @@ find -L . \
  \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
   -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
-python setup.py install --root="$PKG"
+python setup.py install --root=$PKG
 
-find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
   | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
-cd "$PKG"
-/sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-noarch-${BUILD}${TAG}.txz"
+cd $PKG
+/sbin/makepkg -l y -c n $TMP/$PRGNAM-$VERSION-$ARCH-${BUILD}${TAG}.txz
