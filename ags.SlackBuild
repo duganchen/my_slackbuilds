@@ -38,7 +38,14 @@ tar xf allegro-${ALLEGRO_VERSION}.tar.gz
 cd allegro-${ALLEGRO_VERSION}
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=/opt/ags -DCMAKE_BUILD_TYPE=Release ..
+cmake \
+	-DWANT_DOCS=OFF \
+	-DWANT_EXAMPLES=OFF \
+	-DWANT_TESTS=OFF \
+	-DWANT_TOOLS=OFF \
+	-DCMAKE_INSTALL_PREFIX=/opt/ags \
+	-DCMAKE_BUILD_TYPE=Release \
+	..
 make
 make install DESTDIR=$PKG
 
