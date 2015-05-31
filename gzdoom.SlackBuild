@@ -1,0 +1,103 @@
+#!/bin/env zsh
+
+# Massive credit to the B.Watson for the SlackBuilds.org script. This is
+# essentially the same SlackBuild, except that it checks out the source
+# from git.
+
+REPO=https://github.com/coelckers/gzdoom.git
+PRGNAM=$(basename $REPO .git)
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-$PRGNAM
+BUILD=1
+TAG=dc
+
+# Automatically determine the architecture we're building on:
+if [[ -z $ARCH ]]; then
+	case $( uname -m ) in
+		i?86) ARCH=i486 ;;
+		arm*) ARCH=arm ;;
+		*) ARCH=$( uname -m ) ;;
+	esac
+fi
+
+case $ARCH in
+	"i486")
+		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"i686")
+		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"x86_64")
+		SLKCFLAGS="-O2 -fPIC"
+		LIBDIRSUFFIX="64"
+		;;
+	*)
+	 	SLKCFLAGS="-O2"
+		LIBDIRSUFFIX=""
+		;;
+esac
+
+rm -rf $PKG
+rm -rf $TMP/$PRGNAM
+
+cd $TMP
+git clone $REPO
+cd $PRGNAM
+
+curl -O http://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.png
+curl -O http://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.desktop
+
+VERSION=$( git rev-parse --short HEAD )
+
+chown -R root:root .
+find -L . \
+	\( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+	-o -perm 511 \) -exec chmod 755 {} \; -o \
+	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+CWD=$PWD
+
+mkdir -p build
+cd build
+cmake \
+	-DCMAKE_C_FLAGS_RELEASE:STRING="$SLKCFLAGS -DSHARE_DIR=\\\"/usr/share/games/doom\\\"" \
+	-DCMAKE_CXX_FLAGS_RELEASE:STRING="$SLKCFLAGS -DSHARE_DIR=\\\"/usr/share/games/doom\\\"" \
+	-DCMAKE_INSTALL_PREFIX=/usr \
+	-DLIB_SUFFIX=${LIBDIRSUFFIX} \
+	-DMAN_INSTALL_DIR=/usr/man \
+	-DCMAKE_BUILD_TYPE=Release ..
+make
+mkdir -p $PKG/usr/bin $PKG/usr/share/games/doom
+install -m0755 -s $PRGNAM $PKG/usr/bin/$PRGNAM
+install -m0644 *.pk3 $PKG/usr/share/games/doom/
+
+# If fmodapi support was compiled in:
+if [[ -e liboutput_sdl.so ]]; then
+	mkdir -p $PKG/usr/lib$LIBDIRSUFFIX/$PRGNAM
+	install -m0755 -s liboutput_sdl.so $PKG/usr/lib$LIBDIRSUFFIX/$PRGNAM/liboutput_sdl.so
+fi
+
+cd -
+
+find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+# .desktop written for this SlackBuild
+mkdir -p $PKG/usr/share/applications
+cat $CWD/$PRGNAM.desktop > $PKG/usr/share/applications/$PRGNAM.desktop
+
+# PNG converted from Windows icon
+mkdir -p $PKG/usr/share/pixmaps
+cat $CWD/$PRGNAM.png > $PKG/usr/share/pixmaps/$PRGNAM.png
+
+mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
+cp -a docs/* $PKG/usr/doc/$PRGNAM-$VERSION
+
+# Fix DOS CRLF line endings
+sed -i 's/\r//' $PKG/usr/doc/$PRGNAM-$VERSION/*
+
+cd $PKG
+/sbin/makepkg -l y -c n $TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.txz

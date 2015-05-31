@@ -1,0 +1,86 @@
+#!/usr/bin/env zsh
+
+# SlackBuild for Adventure Game Studio
+# See:
+# https://github.com/adventuregamestudio/ags/blob/master/debian/README.md
+#
+# In each game's acsetup.cfg, set the following:
+# gamecolordepth=32
+# gfxdriver=DX5
+# gfxfilter=
+#
+# gfxfilter can be set to taste, but having it empty works best for every game
+# I've tested it with.
+
+set -e
+
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-ags
+BUILD=1
+
+ALLEGRO_VERSION=4.4.2
+DUMB_VERSION=0.9.3
+
+if [[ -z "$ARCH" ]]; then
+  case "$( uname -m )" in
+    i?86) ARCH=i486 ;;
+    arm*) ARCH=arm ;;
+       *) ARCH=$( uname -m ) ;;
+  esac
+fi
+
+
+rm -rf $PKG
+rm -rf $TMP/ags_src
+
+mkdir -p $TMP/ags_src
+cd $TMP/ags_src
+
+wget http://downloads.sourceforge.net/alleg/allegro/$ALLEGRO_VERSION/allegro-${ALLEGRO_VERSION}.tar.gz
+tar xf allegro-${ALLEGRO_VERSION}.tar.gz
+cd allegro-${ALLEGRO_VERSION}
+mkdir build
+cd build
+cmake \
+	-DWANT_DOCS=OFF \
+	-DWANT_EXAMPLES=OFF \
+	-DWANT_TESTS=OFF \
+	-DWANT_TOOLS=OFF \
+	-DCMAKE_INSTALL_PREFIX=/opt/ags \
+	-DCMAKE_BUILD_TYPE=Release \
+	..
+make
+make install DESTDIR=$PKG
+
+cd $TMP/ags_src
+wget http://downloads.sourceforge.net/project/dumb/dumb/$DUMB_VERSION/dumb-${DUMB_VERSION}.tar.gz
+tar xf dumb-${DUMB_VERSION}.tar.gz
+cd dumb-$DUMB_VERSION
+
+cat << EOF > make/config.txt
+include make/unix.inc
+ALL_TARGETS := core core-examples core-headers
+ALL_TARGETS += allegro allegro-examples allegro-headers
+PREFIX := $PKG/opt/ags
+EOF
+
+PATH="$PATH:$PKG/opt/ags/bin" make \
+	WFLAGS="-I$PKG/opt/ags/include" \
+	LDFLAGS="-lm -L$PKG/opt/ags/lib $LDFLAGS"
+make install
+
+cd $TMP/ags_src
+git clone https://github.com/adventuregamestudio/ags.git
+cd ags
+VERSION=$( git rev-parse --short HEAD )
+
+CFLAGS=-I$PKG/opt/ags/include \
+ CXXFLAGS="-I$PKG/opt/ags/include" \
+ LDFLAGS="-L$PKG/opt/ags/lib -Wl,-rpath,/opt/ags/lib" \
+ PATH="$PATH:$PKG/opt/ags/bin" \
+ make --directory=Engine
+mkdir -p $PKG/usr/bin
+cp Engine/ags $PKG/usr/bin
+
+cd $PKG
+/sbin/makepkg -l y -c n $TMP/ags-${VERSION}-${ARCH}-${BUILD}.txz
