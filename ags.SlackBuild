@@ -1,0 +1,89 @@
+#!/usr/bin/env zsh
+
+set -e
+
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-calibre
+BUILD=1
+
+ALLEGRO_VERSION=4.4.2
+DUMB_VERSION=0.9.3
+
+if [[ -z "$ARCH" ]]; then
+  case "$( uname -m )" in
+    i?86) ARCH=i486 ;;
+    arm*) ARCH=arm ;;
+       *) ARCH=$( uname -m ) ;;
+  esac
+fi
+
+case $ARCH in
+	"i486")
+		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"i686")
+		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"x86_64")
+		SLKCFLAGS="-O2 -fPIC"
+		LIBDIRSUFFIX="64"
+		;;
+	*)
+	 	SLKCFLAGS="-O2"
+		LIBDIRSUFFIX=""
+		;;
+esac
+
+
+rm -rf $PKG
+rm -rf $TMP/ags_src
+rm -rf $TMP/ags_deps
+
+mkdir -p $TMP/ags_src
+mkdir -p $TMP/ags_deps
+cd $TMP/ags_src
+
+wget http://downloads.sourceforge.net/alleg/allegro/$ALLEGRO_VERSION/allegro-${ALLEGRO_VERSION}.tar.gz
+tar xf allegro-${ALLEGRO_VERSION}.tar.gz
+cd allegro-${ALLEGRO_VERSION}
+mkdir build
+cd build
+cmake  ..
+make
+make install DESTDIR=$TMP/ags_deps
+
+cd $TMP/ags_src
+wget http://downloads.sourceforge.net/project/dumb/dumb/$DUMB_VERSION/dumb-${DUMB_VERSION}.tar.gz
+tar xf dumb-${DUMB_VERSION}.tar.gz
+cd dumb-$DUMB_VERSION
+
+cat << EOF > make/config.txt
+include make/unix.inc
+ALL_TARGETS := core core-examples core-headers
+ALL_TARGETS += allegro allegro-examples allegro-headers
+PREFIX := $TMP/ags_deps/usr/local
+EOF
+
+PATH="$PATH:$TMP/ags_deps/usr/local/bin" make \
+	WFLAGS="-I$TMP/ags_deps/usr/local/include" \
+	LDFLAGS="-lm -L$TMP/ags_deps/usr/local/lib $LDFLAGS"
+
+cp -rv include/* $TMP/ags_deps/usr/local/include
+cp -rv lib/unix/* $TMP/ags_deps/usr/local/lib
+
+cd $TMP/ags_src
+git clone https://github.com/adventuregamestudio/ags.git
+cd ags
+VERSION=$( git rev-parse --short HEAD )
+
+CFLAGS="-I$TMP/ags_deps/usr/local/include $CFLAGS" \
+ CXXFLAGS="-I$TMP/ags_deps/usr/local/include $CXXFLAGS" \
+ LDFLAGS="-L$TMP/ags_deps/usr/local/lib" \
+ PATH="$PATH:$TMP/ags_deps/usr/local/bin" \
+ make --directory=Engine
+
+
+# cd $PKG
+# /sbin/makepkg -l y -c n $TMP/calibre-$VERSION-$ARCH-${BUILD}.txz
