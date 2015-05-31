@@ -1,13 +1,16 @@
 #!/usr/bin/env zsh
 
 # SlackBuild for Adventure Game Studio
-# See: https://github.com/adventuregamestudio/ags/blob/master/debian/README.md
+# See:
+# https://github.com/adventuregamestudio/ags/blob/master/debian/README.md
 #
 # In each game's acsetup.cfg, set the following:
+# gamecolordepth=32
 # gfxdriver=DX5
 # gfxfilter=
 #
-# gfxfilter can be set to taste, but having it empty works best for Primordia.
+# gfxfilter can be set to taste, but having it empty works best for every game
+# I've tested it with.
 
 set -e
 
