@@ -29,12 +29,29 @@ if [[ -z "$ARCH" ]]; then
   esac
 fi
 
+case $ARCH in
+	"i486")
+		LIBDIRSUFFIX=""
+		;;
+	"i686")
+		LIBDIRSUFFIX=""
+		;;
+	"x86_64")
+		LIBDIRSUFFIX="64"
+		;;
+	*)
+		LIBDIRSUFFIX=""
+		;;
+esac
+
 
 rm -rf $PKG
 rm -rf $TMP/ags_src
+rm -rf $TMP/ags_dep
 
 mkdir -p $TMP/ags_src
 cd $TMP/ags_src
+
 
 wget http://downloads.sourceforge.net/alleg/allegro/$ALLEGRO_VERSION/allegro-${ALLEGRO_VERSION}.tar.gz
 tar xf allegro-${ALLEGRO_VERSION}.tar.gz
@@ -46,11 +63,12 @@ cmake \
 	-DWANT_EXAMPLES=OFF \
 	-DWANT_TESTS=OFF \
 	-DWANT_TOOLS=OFF \
-	-DCMAKE_INSTALL_PREFIX=/opt/ags \
+	-DCMAKE_INSTALL_PREFIX=/usr \
 	-DCMAKE_BUILD_TYPE=Release \
 	..
 make
-make install DESTDIR=$PKG
+mkdir -p $TMP/ags_dep
+make install DESTDIR=$TMP/ags_dep
 
 cd $TMP/ags_src
 wget http://downloads.sourceforge.net/project/dumb/dumb/$DUMB_VERSION/dumb-${DUMB_VERSION}.tar.gz
@@ -61,12 +79,12 @@ cat << EOF > make/config.txt
 include make/unix.inc
 ALL_TARGETS := core core-examples core-headers
 ALL_TARGETS += allegro allegro-examples allegro-headers
-PREFIX := $PKG/opt/ags
+PREFIX := $TMP/ags_dep/usr
 EOF
 
-PATH="$PATH:$PKG/opt/ags/bin" make \
-	WFLAGS="-I$PKG/opt/ags/include" \
-	LDFLAGS="-lm -L$PKG/opt/ags/lib $LDFLAGS"
+PATH=$PATH:$TMP/ags_dep/usr/bin make \
+	WFLAGS=-I$TMP/ags_dep/usr/include \
+	LDFLAGS="-lm -L$TMP/ags_dep/usr/lib"
 make install
 
 cd $TMP/ags_src
@@ -74,13 +92,17 @@ git clone https://github.com/adventuregamestudio/ags.git
 cd ags
 VERSION=$( git rev-parse --short HEAD )
 
-CFLAGS=-I$PKG/opt/ags/include \
- CXXFLAGS="-I$PKG/opt/ags/include" \
- LDFLAGS="-L$PKG/opt/ags/lib -Wl,-rpath,/opt/ags/lib" \
- PATH="$PATH:$PKG/opt/ags/bin" \
+CFLAGS=-I$TMP/ags_dep/usr/include \
+ CXXFLAGS=-I$TMP/ags_dep/usr/include \
+ LDFLAGS="-L$TMP/ags_dep/usr/lib -Wl,-rpath,/usr/lib$LIBDIRSUFFIX/ags" \
+ PATH=$PATH:$TMP/ags_dep/usr/bin \
  make --directory=Engine
 mkdir -p $PKG/usr/bin
 cp Engine/ags $PKG/usr/bin
+
+mkdir -p $PKG/usr/lib$LIBDIRSUFFIX/ags
+cp -r $TMP/ags_dep/usr/lib/* $PKG/usr/lib$LIBDIRSUFFIX/ags
+rm -r $PKG/usr/lib$LIBDIRSUFFIX/ags/pkgconfig
 
 cd $PKG
 /sbin/makepkg -l y -c n $TMP/ags-${VERSION}-${ARCH}-${BUILD}.txz
