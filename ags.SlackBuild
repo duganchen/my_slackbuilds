@@ -85,7 +85,7 @@ cp Engine/ags $PKG/opt/ags/bin
 mkdir -p $PKG/usr/bin
 (
 cd $PKG/usr/bin
-ln -s $PKG/opt/ags/bin/ags .
+ln -s ../../opt/ags/bin/ags .
 )
 
 cd $PKG
