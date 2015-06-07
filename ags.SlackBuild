@@ -80,7 +80,13 @@ CFLAGS=-I$PKG/opt/ags/include \
  PATH="$PATH:$PKG/opt/ags/bin" \
  make --directory=Engine
 mkdir -p $PKG/usr/bin
-cp Engine/ags $PKG/usr/bin
+cp Engine/ags $PKG/opt/ags/bin
+
+mkdir -p $PKG/usr/bin
+(
+cd $PKG/usr/bin
+ln -s ../../opt/ags/bin/ags .
+)
 
 cd $PKG
 /sbin/makepkg -l y -c n $TMP/ags-${VERSION}-${ARCH}-${BUILD}.txz
