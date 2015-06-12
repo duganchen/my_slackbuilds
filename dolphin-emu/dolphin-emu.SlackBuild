@@ -1,5 +1,8 @@
 #!/usr/bin/env zsh
 
+# Note: Dolphin currently requires requires gcc 4.9, which is
+# newer than the one included in Slackware 14.1.
+
 PRGNAM="dolphin-emu"
 SRC="dolphin"
 REPO="https://github.com/${PRGNAM}/${SRC}.git"
