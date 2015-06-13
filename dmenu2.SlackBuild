@@ -1,0 +1,83 @@
+#!/bin/env zsh
+
+REPO=https://bitbucket.org/melek/dmenu2
+PRGNAM=dmenu2
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-$PRGNAM
+BUILD=1
+TAG=dc
+
+if [[ -z $ARCH ]]; then
+	case $( uname -m ) in
+		i?86) ARCH=i486 ;;
+		arm*) ARCH=arm ;;
+		*) ARCH=$( uname -m ) ;;
+	esac
+fi
+
+case $ARCH in
+	"i486")
+		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"i686")
+		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"x86_64")
+		SLKCFLAGS="-O2 -fPIC"
+		LIBDIRSUFFIX="64"
+		;;
+	*)
+	 	SLKCFLAGS="-O2"
+		LIBDIRSUFFIX=""
+		;;
+esac
+
+rm -rf $PKG
+rm -rf $TMP/$PRGNAM
+
+cd $TMP
+hg clone $REPO
+cd $PRGNAM
+VERSION=$(hg identify | cut -d ' ' -f 1)
+
+wget http://slackbuilds.org/slackbuilds/14.1/desktop/dmenu2/dmenu2-0.2-config-fix.diff
+wget http://slackbuilds.org/slackbuilds/14.1/desktop/dmenu2/slack-desc
+
+chown -R root:root .
+find -L . \
+	\( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+	-o -perm 511 \) -exec chmod 755 {} \; -o \
+	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+patch -p1 < dmenu2-0.2-config-fix.diff
+
+make clean install \
+  OPTS="$SLKCFLAGS" \
+  PREFIX=/usr \
+  LIBDIR=/usr/lib${LIBDIRSUFFIX} \
+  MANPREFIX=/usr/man \
+  X11INC=/usr/include \
+  X11LIB=/usr/lib${LIBDIRSUFFIX}/X11 \
+  DESTDIR=$PKG
+
+find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+  | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+for m in $PKG/usr/man/**/*.[0-9]; do
+	gzip -9 $m
+done
+
+mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
+cp -a [[:upper:]][[:upper:]]* $PKG/usr/doc/$PRGNAM-$VERSION
+
+mkdir -p $PKG/install
+cat slack-desc > $PKG/install/slack-desc
+rm -rf $TMP/$PRGNAM
+
+cd $PKG
+/sbin/makepkg -l y -c n $TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.txz
+rm -rf $PKG
+
