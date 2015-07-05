@@ -1,11 +1,14 @@
 #!/bin/env zsh
 
-REPO=https://bitbucket.org/melek/dmenu2
-PRGNAM=dmenu2
+REPO=https://github.com/fish-shell/fish-shell.git
 TMP=${TMP:-/tmp}
-PKG=$TMP/package-$PRGNAM
+PKGNAM=fish
 BUILD=1
 TAG=dc
+SBO_VERSION=14.1
+
+PRGNAM=$(basename $REPO .git)
+PKG=$TMP/package-$PKGNAM
 
 if [[ -z $ARCH ]]; then
 	case $( uname -m ) in
@@ -37,13 +40,14 @@ esac
 rm -rf $PKG
 rm -rf $TMP/$PRGNAM
 
+mkdir -p $PKG/usr/doc
 cd $TMP
-hg clone $REPO
+git clone $REPO
 cd $PRGNAM
-VERSION=$(hg identify | cut -d ' ' -f 1)
 
-wget http://slackbuilds.org/slackbuilds/14.1/desktop/dmenu2/dmenu2-0.2-config-fix.diff
-wget http://slackbuilds.org/slackbuilds/14.1/desktop/dmenu2/slack-desc
+VERSION=$( git rev-parse --short HEAD )
+
+wget http://slackbuilds.org/slackbuilds/$SBO_VERSION/system/fish/slack-desc
 
 chown -R root:root .
 find -L . \
@@ -52,32 +56,36 @@ find -L . \
 	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
 	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
-patch -p1 < dmenu2-0.2-config-fix.diff
+autoreconf -i
 
-make clean install \
-  OPTS="$SLKCFLAGS" \
-  PREFIX=/usr \
-  LIBDIR=/usr/lib${LIBDIRSUFFIX} \
-  MANPREFIX=/usr/man \
-  X11INC=/usr/include \
-  X11LIB=/usr/lib${LIBDIRSUFFIX}/X11 \
-  DESTDIR=$PKG
+CFLAGS="$SLKCFLAGS" \
+CXXFLAGS="$SLKCFLAGS" \
+./configure \
+  --prefix=/usr \
+  --libdir=/usr/lib${LIBDIRSUFFIX} \
+  --sysconfdir=/etc \
+  --localstatedir=/var \
+  --mandir=/usr/man \
+  --docdir=/usr/doc/${PKGNAM}-$VERSION \
+  --build=$ARCH-slackware-linux
+
+make
+make install DESTDIR=$PKG
 
 find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
-  | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
-for m in $PKG/usr/man/**/*.[0-9]; do
+for m in $PKG/usr/man/**/*; do
 	gzip -9 $m
 done
 
-mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
-cp -a [[:upper:]][[:upper:]]* $PKG/usr/doc/$PRGNAM-$VERSION
+cp -a [[:upper:]][[:upper:]]* $PKG/usr/doc/${PKGNAM}-$VERSION
 
 mkdir -p $PKG/install
 cat slack-desc > $PKG/install/slack-desc
-rm -rf $TMP/$PRGNAM
 
 cd $PKG
-/sbin/makepkg -l y -c n $TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.txz
-rm -rf $PKG
+/sbin/makepkg -l y -c n $TMP/${PKGNAM}-${VERSION}-${ARCH}-${BUILD}${TAG}.txz
 
+rm -rf $TMP/$PRGNAM
+rm -rf $PKG
