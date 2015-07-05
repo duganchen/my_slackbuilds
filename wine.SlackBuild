@@ -1,0 +1,105 @@
+#!/bin/env zsh
+
+set -e
+
+# Builds Wine with the wine-staging patches. On a 32-bit or 64-bit multilib
+# system, it will build a 32-bit Wine package. I have not tested it with a
+# pure 64-bit system.
+
+# This is based on the SBo SlackBuild.
+
+# Set this to to whatever version you want to build.
+VERSION=${VERSION:-1.7.46}
+
+# I believe the rule is one more than the number of cores?
+((JOBS = $( cat /proc/cpuinfo  | grep -c processor ) + 1))
+
+BUILD=${BUILD:-1}
+TAG=${TAG:-dc}
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-wine
+SLACK_VERSION=${SLACK_VERSION:-14.1}
+
+
+if [[ -z $ARCH ]]; then
+	case $( uname -m ) in
+		i?86) ARCH=i486 ;;
+		arm*) ARCH=arm ;;
+		*) ARCH=$( uname -m ) ;;
+	esac
+fi
+
+case $ARCH in
+	"i486")
+		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"i686")
+		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"x86_64")
+		SLKCFLAGS="-O2 -fPIC"
+		LIBDIRSUFFIX="64"
+		;;
+	*)
+	 	SLKCFLAGS="-O2"
+		LIBDIRSUFFIX=""
+		;;
+esac
+
+rm -rf $PKG $TMP/wine_src
+
+cd $TMP
+
+mkdir wine_src
+cd wine_src
+wget http://prdownloads.sourceforge.net/wine/wine-$VERSION.tar.bz2
+wget https://github.com/wine-compholio/wine-staging/archive/v$VERSION.tar.gz
+wget http://slackbuilds.org/slackbuilds/$SLACK_VERSION/system/wine/slack-desc
+
+tar xvf wine-$VERSION.tar.bz2
+tar xvf v$VERSION.tar.gz
+
+cd wine-staging-$VERSION/patches
+./patchinstall.sh --all DESTDIR=$TMP/wine_src/wine-$VERSION
+
+cd $TMP/wine_src/wine-$VERSION
+
+chown -R root:root .
+find -L . \
+ \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+  -o -perm 511 \) -exec chmod 755 {} \; -o \
+ \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+  -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+autoreconf -i
+
+CFLAGS="$SLKCFLAGS" \
+CXXFLAGS="$SLKCFLAGS" \
+./configure \
+  --prefix=/usr \
+  --mandir=/usr/man \
+  --docdir=/usr/doc/wine-$VERSION \
+  --build=$ARCH-slackware-linux
+
+make -j $JOBS
+make install DESTDIR=$PKG
+
+find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+  | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+find $PKG/usr/man -type f -exec gzip -9 {} \;
+for i in $( find $PKG/usr/man -type l ) ; do ln -s $( readlink $i ).gz $i.gz ; rm $i ; done
+
+mkdir -p $PKG/usr/doc/wine-$VERSION
+cp -a [[:upper:]][[:upper:]]* $PKG/usr/doc/wine-$VERSION
+
+mkdir -p $PKG/install
+cat $TMP/wine_src/slack-desc > $PKG/install/slack-desc
+
+cd $PKG
+/sbin/makepkg -l y -c n $TMP/wine-${VERSION}-${ARCH}-$BUILD$TAG.txz
+
+rm -rf $TMP/wine_src
+rm -rf $PKG
