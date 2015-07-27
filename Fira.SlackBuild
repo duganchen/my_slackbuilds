@@ -47,5 +47,28 @@ if [ -x /usr/bin/fc-cache ]; then
 fi
 EOF
 
+cat <<- EOF > ${PKG}/install/slack-desc
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.
+# Line up the first '|' above the ':' following the base package name, and
+# the '|' on the right side marks the last column you can put a character in.
+# You must make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':' except on otherwise blank lines.
+
+    |-----handy-ruler------------------------------------------------------|
+Fira: Fira (Firefox OS Fonts)
+Fira:
+Fira: These are the fonts used in Firefox OS. See Mozilla's style guide
+Fira: for specific typography recommendations:
+Fira:
+Fira: https://www.mozilla.org/en-US/styleguide/products/firefox-os/typeface
+Fira:
+Fira:
+Fira:
+Fira:
+Fira:
+EOF
+
+
 cd $PKG
 /sbin/makepkg -l y -c n $TMP/$PRGNAM-$VERSION-noarch-$BUILD$TAG.txz
