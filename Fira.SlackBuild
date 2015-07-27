@@ -2,6 +2,7 @@
 
 REPO=https://github.com/mozilla/Fira.git
 PRGNAM=$(basename $REPO .git)
+VERSION="r$(svn info https://github.com/mozilla/Fira/trunk/ttf/ | grep "Last Changed Rev:" | rev | cut -d ' ' -f 1)"
 TMP=${TMP:-/tmp}
 PKG=$TMP/package-$PRGNAM
 BUILD=1
@@ -12,10 +13,13 @@ rm -rf $TMP/$PRGNAM
 
 mkdir -p $PKG/usr/doc
 cd $TMP
-git clone --depth 1 $REPO
+mkdir $PRGNAM
 cd $PRGNAM
-
-VERSION=$( git rev-parse --short HEAD )
+svn export --force https://github.com/mozilla/Fira/trunk/otf/ .
+wget https://raw.githubusercontent.com/mozilla/Fira/master/index.html
+wget https://raw.githubusercontent.com/mozilla/Fira/master/fira.css
+wget https://raw.githubusercontent.com/mozilla/Fira/master/LICENSE
+wget https://raw.githubusercontent.com/mozilla/Fira/master/README.md
 
 chown -R root:root .
 find -L . \
@@ -25,10 +29,10 @@ find -L . \
 	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
 mkdir -p $PKG/usr/share/fonts/OTF
-cp otf/* $PKG/usr/share/fonts/OTF
+cp *.otf $PKG/usr/share/fonts/OTF
 
 mkdir -p $PKG/usr/doc/${PRGNAM}-$VERSION
-cp -a [[:upper:]][[:upper:]]* $PKG/usr/doc/${PRGNAM}-$VERSION
+cp -a index.html fira.css LICENSE README.md $PKG/usr/doc/${PRGNAM}-$VERSION
 
 mkdir -p $PKG/install
 
