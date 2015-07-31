@@ -1,0 +1,74 @@
+#!/usr/bin/env zsh
+
+REPO=https://github.com/mozilla/Fira.git
+PRGNAM=$(basename $REPO .git)
+VERSION="r$(svn info https://github.com/mozilla/Fira/trunk/ttf/ | grep "Last Changed Rev:" | rev | cut -d ' ' -f 1)"
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-$PRGNAM
+BUILD=1
+TAG=dc
+
+rm -rf $PKG
+rm -rf $TMP/$PRGNAM
+
+mkdir -p $PKG/usr/doc
+cd $TMP
+mkdir $PRGNAM
+cd $PRGNAM
+svn export --force https://github.com/mozilla/Fira/trunk/otf/ .
+wget https://raw.githubusercontent.com/mozilla/Fira/master/index.html
+wget https://raw.githubusercontent.com/mozilla/Fira/master/fira.css
+wget https://raw.githubusercontent.com/mozilla/Fira/master/LICENSE
+wget https://raw.githubusercontent.com/mozilla/Fira/master/README.md
+
+chown -R root:root .
+find -L . \
+	\( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+	-o -perm 511 \) -exec chmod 755 {} \; -o \
+	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+mkdir -p $PKG/usr/share/fonts/OTF
+cp *.otf $PKG/usr/share/fonts/OTF
+
+mkdir -p $PKG/usr/doc/${PRGNAM}-$VERSION
+cp -a index.html fira.css LICENSE README.md $PKG/usr/doc/${PRGNAM}-$VERSION
+
+mkdir -p $PKG/install
+
+cat << EOF > ${PKG}/install/doinst.sh
+# Update the X font indexes:
+if [ -x /usr/bin/mkfontdir ]; then
+  /usr/bin/mkfontscale /usr/share/fonts/OTF
+  /usr/bin/mkfontdir /usr/share/fonts/OTF
+fi
+if [ -x /usr/bin/fc-cache ]; then
+  /usr/bin/fc-cache -f
+fi
+EOF
+
+cat <<- EOF > ${PKG}/install/slack-desc
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.
+# Line up the first '|' above the ':' following the base package name, and
+# the '|' on the right side marks the last column you can put a character in.
+# You must make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':' except on otherwise blank lines.
+
+    |-----handy-ruler------------------------------------------------------|
+Fira: Fira (Firefox OS Fonts)
+Fira:
+Fira: These are the fonts used in Firefox OS. See Mozilla's style guide
+Fira: for specific typography recommendations:
+Fira:
+Fira: https://www.mozilla.org/en-US/styleguide/products/firefox-os/typeface
+Fira:
+Fira:
+Fira:
+Fira:
+Fira:
+EOF
+
+
+cd $PKG
+/sbin/makepkg -l y -c n $TMP/$PRGNAM-$VERSION-noarch-$BUILD$TAG.txz
