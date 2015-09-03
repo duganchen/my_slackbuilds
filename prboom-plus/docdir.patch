@@ -1,0 +1,27 @@
+Binary files prboom2.orig/.Makefile.am.un~ and prboom2/.Makefile.am.un~ differ
+Binary files prboom2.orig/.svn/wc.db and prboom2/.svn/wc.db differ
+diff -rupN prboom2.orig/Makefile.am prboom2/Makefile.am
+--- prboom2.orig/Makefile.am	2015-09-03 13:49:11.414993986 -0700
++++ prboom2/Makefile.am	2015-09-03 13:56:13.857993639 -0700
+@@ -3,7 +3,7 @@
+ #
+ 
+ ACLOCAL_AMFLAGS = -I autotools
+-docdir=$(prefix)/share/doc/@PACKAGE@-@VERSION@
++docdir=$(prefix)/doc/@PACKAGE@-@VERSION@
+ SUBDIRS = doc data src ICONS VisualC6 VisualC8
+ EXTRA_DIST = prboom.spec.in prboom.spec config.h bootstrap
+ doc_DATA = README COPYING AUTHORS NEWS
+Binary files prboom2.orig/doc/.Makefile.am.un~ and prboom2/doc/.Makefile.am.un~ differ
+diff -rupN prboom2.orig/doc/Makefile.am prboom2/doc/Makefile.am
+--- prboom2.orig/doc/Makefile.am	2015-09-03 13:49:11.139993986 -0700
++++ prboom2/doc/Makefile.am	2015-09-03 13:56:21.257993633 -0700
+@@ -4,7 +4,7 @@
+ #
+ #
+ 
+-docdir=$(prefix)/share/doc/@PACKAGE@-@VERSION@
++docdir=$(prefix)/doc/@PACKAGE@-@VERSION@
+ dist_doc_DATA=boom.txt MBF.txt MBFFAQ.txt README.demos README.compat \
+ 	prboom-plus-history.txt \
+ 	prboom-plus-history.html \
