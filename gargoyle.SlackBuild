@@ -1,0 +1,102 @@
+#!/bin/env zsh
+
+set -e
+
+# Builds Gargoyle with the Granite patches.
+#
+# This is based on the SBo SlackBuild and has the same dependencies. SDL_sound
+# is required, jam is required to build, and the default configuration uses Linux
+# Libertine fonts.
+
+PRGNAM=gargoyle
+BUILD=${BUILD:-1}
+TAG=${TAG:-dc}
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-$PRGNAM
+SBO_VERSION=${SBO_VERSION:-14.1}
+
+
+if [[ -z $ARCH ]]; then
+	case $( uname -m ) in
+		i?86) ARCH=i486 ;;
+		arm*) ARCH=arm ;;
+		*) ARCH=$( uname -m ) ;;
+	esac
+fi
+
+case $ARCH in
+	"i486")
+		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"i686")
+		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"x86_64")
+		SLKCFLAGS="-O2 -fPIC"
+		LIBDIRSUFFIX="64"
+		;;
+	*)
+	 	SLKCFLAGS="-O2"
+		LIBDIRSUFFIX=""
+		;;
+esac
+
+rm -rf $PKG $TMP/gargoyle_src
+
+cd $TMP
+
+mkdir ${PRGNAM}_src
+cd ${PRGNAM}_src
+git clone https://github.com/RedHatter/granite.git
+git clone https://github.com/garglk/garglk.git
+wget http://slackbuilds.org/slackbuilds/$SBO_VERSION/games/$PRGNAM/slack-desc
+wget http://slackbuilds.org/slackbuilds/${SBO_VERSION}/games/$PRGNAM/gargoyle.sh
+wget http://slackbuilds.org/slackbuilds/${SBO_VERSION}/games/$PRGNAM/doinst.sh
+cd garglk
+
+VERSION=$( git rev-parse --short HEAD )
+
+chown -R root:root .
+find -L . \
+ \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+  -o -perm 511 \) -exec chmod 755 {} \; -o \
+ \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+  -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+patch -p1 --verbose < $TMP/${PRGNAM}_src/granite/auto-complete.patch
+patch -p1 --verbose < $TMP/${PRGNAM}_src/granite/click-insert.patch
+patch -p1 --verbose < $TMP/${PRGNAM}_src/granite/search-history.patch
+
+jam -s DESTDIR=$PKG \
+ -s _BINDIR=/usr/libexec/gargoyle \
+ -s _APPDIR=/usr/libexec/gargoyle \
+ -s _LIBDIR=/usr/lib$LIBDIRSUFFIX/gargoyle \
+ -s CCFLAGS="$SLKCFLAGS" \
+ -dx \
+ install
+
+find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+  | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+mkdir -p $PKG/usr/bin
+install -m755 $TMP/${PRGNAM}_src/gargoyle.sh $PKG/usr/bin/gargoyle
+
+ln -s gargoyle/libgarglk.so $PKG/usr/lib${LIBDIRSUFFIX}/libgarglk.so
+
+mkdir -p $PKG/etc
+cp garglk/garglk.ini $PKG/etc/garglk.ini.new
+
+mkdir -p $PKG/usr/share/pixmaps
+cp garglk/gargoyle-house.png $PKG/usr/share/pixmaps
+
+mkdir -p $PKG/usr/share/applications
+cp garglk/gargoyle.desktop $PKG/usr/share/applications
+
+mkdir -p $PKG/install
+cat $TMP/${PRGNAM}_src/slack-desc > $PKG/install/slack-desc
+cat $TMP/${PRGNAM}_src/doinst.sh > $PKG/install/slack-desc
+
+cd $PKG
+/sbin/makepkg -l y -c n ${TMP}/${PRGNAM}-${VERSION}-${ARCH}-${BUILD}${TAG}.${PKGTYPE:-txz}
