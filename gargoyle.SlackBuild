@@ -9,7 +9,7 @@ set -e
 # Libertine fonts.
 
 PRGNAM=gargoyle
-BUILD=${BUILD:-1}
+BUILD=${BUILD:-2}
 TAG=${TAG:-dc}
 TMP=${TMP:-/tmp}
 PKG=$TMP/package-$PRGNAM
@@ -65,7 +65,10 @@ find -L . \
  \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
   -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
-patch -p1 --verbose < $TMP/${PRGNAM}_src/granite/auto-complete.patch
+# This is too annoying. We choose tab-complete instead.
+# patch -p1 --verbose < $TMP/${PRGNAM}_src/granite/auto-complete.patch
+patch -p1 --verbose < $TMP/${PRGNAM}_src/granite/tab-complete.patch
+
 patch -p1 --verbose < $TMP/${PRGNAM}_src/granite/click-insert.patch
 patch -p1 --verbose < $TMP/${PRGNAM}_src/granite/search-history.patch
 
