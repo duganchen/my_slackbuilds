@@ -1,0 +1,33 @@
+#!/bin/env zsh
+
+set -e
+
+# For the Brother DCP 7060D's scanner driver.
+# I'm only interested in getting it working with 64-bit systems.
+
+VERSION=0.2.4
+PRGNAM=brscan-skey
+TMP=${TMP:-/tmp}
+BUILD=${BUILD:-1}
+TAG=${TAG:-dc}
+CWD=$PWD
+PKG=$TMP/package-$PRGNAM
+
+rm -rf $TMP/$PRGNAM $PKG
+
+mkdir -p $TMP/${PRGNAM}-${VERSION}
+cd $TMP/${PRGNAM}-${VERSION}
+ar x $CWD/${PRGNAM}-${VERSION}-${BUILD}.amd64.deb
+
+mkdir -p $PKG
+cd $PKG
+tar -xf $TMP/${PRGNAM}-${VERSION}/data.tar.gz
+
+rmdir $PKG/usr/share/doc
+rmdir $PKG/usr/share
+
+tar xf $TMP/${PRGNAM}-${VERSION}/control.tar.gz ./postinst
+mkdir -p $PKG/install
+mv postinst $PKG/install/doinst.sh
+
+makepkg -c n -l y /tmp/${PRGNAM}-${VERSION}-x86_64-${BUILD}${TAG}.txz
