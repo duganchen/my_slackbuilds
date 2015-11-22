@@ -9,7 +9,7 @@ set -e
 # This is based on the SBo SlackBuild.
 
 # Set this to to whatever version you want to build.
-VERSION=${VERSION:-1.7.54}
+VERSION=${VERSION:-1.7.55}
 
 # I believe the rule is one more than the number of cores?
 ((JOBS = $( cat /proc/cpuinfo  | grep -c processor ) + 1))
