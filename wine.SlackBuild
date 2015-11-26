@@ -9,7 +9,9 @@ set -e
 # This is based on the SBo SlackBuild.
 
 # Set this to to whatever version you want to build.
-VERSION=${VERSION:-1.7.55}
+VERSION=${VERSION:-1.8rc1}
+SRCVER=${SRCVER:-1.8-rc1}
+
 
 # I believe the rule is one more than the number of cores?
 ((JOBS = $( cat /proc/cpuinfo  | grep -c processor ) + 1))
@@ -54,17 +56,17 @@ cd $TMP
 
 mkdir wine_src
 cd wine_src
-wget http://mirrors.ibiblio.org/wine/source/1.7/wine-$VERSION.tar.bz2
-wget https://github.com/wine-compholio/wine-staging/archive/v$VERSION.tar.gz
+wget http://mirrors.ibiblio.org/wine/source/1.8/wine-$SRCVER.tar.bz2
+wget https://github.com/wine-compholio/wine-staging/archive/v$SRCVER.tar.gz
 wget http://slackbuilds.org/slackbuilds/$SLACK_VERSION/system/wine/slack-desc
 
-tar xvf wine-$VERSION.tar.bz2
-tar xvf v$VERSION.tar.gz
+tar xvf wine-$SRCVER.tar.bz2
+tar xvf v$SRCVER.tar.gz
 
-cd wine-staging-$VERSION/patches
-./patchinstall.sh --all DESTDIR=$TMP/wine_src/wine-$VERSION
+cd wine-staging-$SRCVER/patches
+./patchinstall.sh --all DESTDIR=$TMP/wine_src/wine-$SRCVER
 
-cd $TMP/wine_src/wine-$VERSION
+cd $TMP/wine_src/wine-$SRCVER
 
 chown -R root:root .
 find -L . \
