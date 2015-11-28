@@ -1,5 +1,7 @@
 #!/bin/env zsh
 
+set -e
+
 # Massive credit to the B.Watson for the SlackBuilds.org script. This is
 # essentially the same SlackBuild, except that it checks out the source
 # from git.
@@ -8,10 +10,10 @@ REPO=https://github.com/coelckers/gzdoom.git
 PRGNAM=$(basename $REPO .git)
 TMP=${TMP:-/tmp}
 PKG=$TMP/package-$PRGNAM
+VERSION=g2.1.pre
 BUILD=1
 TAG=dc
 
-# Automatically determine the architecture we're building on:
 if [[ -z $ARCH ]]; then
 	case $( uname -m ) in
 		i?86) ARCH=i486 ;;
@@ -46,10 +48,12 @@ cd $TMP
 git clone $REPO
 cd $PRGNAM
 
+git checkout $VERSION
+git reset --hard
+git clean -f -d -x
+
 curl -O http://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.png
 curl -O http://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.desktop
-
-VERSION=$( git rev-parse --short HEAD )
 
 chown -R root:root .
 find -L . \
