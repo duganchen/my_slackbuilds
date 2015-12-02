@@ -11,7 +11,7 @@ PRGNAM=$(basename $REPO .git)
 TMP=${TMP:-/tmp}
 PKG=$TMP/package-$PRGNAM
 VERSION=g2.1.pre
-BUILD=2
+BUILD=4
 TAG=dc
 
 if [[ -z $ARCH ]]; then
@@ -52,7 +52,7 @@ git checkout $VERSION
 git reset --hard
 git clean -f -d -x
 
-wget https://gist.githubusercontent.com/duganchen/4f0febfb9c16bedf7324/raw/49dcc46023c6ee63bd6566234c5c9461cfdc04d4/gzdoom_xbrz.diff
+wget https://gist.githubusercontent.com/duganchen/4f0febfb9c16bedf7324/raw/091f36b1050abe00cbb0f4240bee40861d96a272/gzdoom_xbrz.diff
 
 patch -p1 --verbose < gzdoom_xbrz.diff
 
