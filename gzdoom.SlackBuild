@@ -52,7 +52,7 @@ git checkout $VERSION
 git reset --hard
 git clean -f -d -x
 
-wget https://gist.githubusercontent.com/duganchen/4f0febfb9c16bedf7324/raw/b5f55889bab00b5372a42129b59b09cc8a557baa/gzdoom_xbrz.diff
+wget https://gist.githubusercontent.com/duganchen/4f0febfb9c16bedf7324/raw/ceb4c47ca2285db4b2e8a94041b40e99a917436d/gzdoom_xbrz.diff
 
 patch -p1 --verbose < gzdoom_xbrz.diff
 
