@@ -9,8 +9,8 @@ set -e
 # This is based on the SBo SlackBuild.
 
 # Set this to to whatever version you want to build.
-VERSION=${VERSION:-1.8rc3}
-SRCVER=${SRCVER:-1.8-rc3}
+VERSION=${VERSION:-1.8rc4}
+SRCVER=${SRCVER:-1.8-rc4}
 
 
 # I believe the rule is one more than the number of cores?
