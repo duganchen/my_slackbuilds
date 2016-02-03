@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 
+set -e
+
 PRGNAM="dolphin-emu"
 SRC="dolphin"
 REPO="https://github.com/${PRGNAM}/${SRC}.git"
