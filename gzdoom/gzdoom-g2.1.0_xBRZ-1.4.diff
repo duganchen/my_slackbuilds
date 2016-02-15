@@ -1,6 +1,6 @@
 xBRZ 1.4 support for gzdoom.
 Taken and updated from https://github.com/coelckers/gzdoom/pull/7
-Apply to tag g2.0.04
+Apply to tag g2.1.0
 diff -rupN gzdoom.orig/src/CMakeLists.txt gzdoom/src/CMakeLists.txt
 --- gzdoom.orig/src/CMakeLists.txt	2016-02-14 17:04:29.174997337 -0800
 +++ gzdoom/src/CMakeLists.txt	2016-02-14 16:56:06.047997750 -0800
