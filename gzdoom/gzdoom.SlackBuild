@@ -10,8 +10,9 @@ REPO=https://github.com/coelckers/gzdoom.git
 PRGNAM=$(basename $REPO .git)
 TMP=${TMP:-/tmp}
 PKG=$TMP/package-$PRGNAM
-VERSION=g2.0.04
-BUILD=4
+VERSION=g2.1.0
+XBRZ_VERSION=1.4
+BUILD=1
 TAG=dc
 
 if [[ -z $ARCH ]]; then
@@ -41,10 +42,13 @@ case $ARCH in
 		;;
 esac
 
+CWD=$PWD
+
 rm -rf $PKG
 rm -rf $TMP/$PRGNAM
 
 cd $TMP
+
 git clone $REPO
 cd $PRGNAM
 
@@ -52,12 +56,16 @@ git checkout $VERSION
 git reset --hard
 git clean -f -d -x
 
-wget https://gist.githubusercontent.com/duganchen/4f0febfb9c16bedf7324/raw/ceb4c47ca2285db4b2e8a94041b40e99a917436d/gzdoom_xbrz.diff
-
-patch -p1 --verbose < gzdoom_xbrz.diff
+patch -p1 --verbose < $CWD/gzdoom-${VERSION}_xBRZ-${XBRZ_VERSION}.diff
 
 curl -O http://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.png
 curl -O http://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.desktop
+wget http://downloads.sourceforge.net/project/xbrz/xBRZ/xBRZ_${XBRZ_VERSION}.zip
+
+mkdir -p src/gl/xBRZ
+cd src/gl/xBRZ
+unzip ../../../xBRZ_${XBRZ_VERSION}.zip
+cd $TMP/$PRGNAM
 
 chown -R root:root .
 find -L . \
@@ -65,8 +73,6 @@ find -L . \
 	-o -perm 511 \) -exec chmod 755 {} \; -o \
 	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
 	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
-
-CWD=$PWD
 
 mkdir -p build
 cd build
@@ -95,11 +101,11 @@ find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | gr
 
 # .desktop written for this SlackBuild
 mkdir -p $PKG/usr/share/applications
-cat $CWD/$PRGNAM.desktop > $PKG/usr/share/applications/$PRGNAM.desktop
+cat $TMP/$PRGNAM/$PRGNAM.desktop > $PKG/usr/share/applications/$PRGNAM.desktop
 
 # PNG converted from Windows icon
 mkdir -p $PKG/usr/share/pixmaps
-cat $CWD/$PRGNAM.png > $PKG/usr/share/pixmaps/$PRGNAM.png
+cat $TMP/$PRGNAM/$PRGNAM.png > $PKG/usr/share/pixmaps/$PRGNAM.png
 
 mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
 cp -a docs/* $PKG/usr/doc/$PRGNAM-$VERSION
