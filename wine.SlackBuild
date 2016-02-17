@@ -9,8 +9,8 @@ set -e
 # This is based on the SBo SlackBuild.
 
 # Set this to to whatever version you want to build.
-VERSION=${VERSION:-1.9.0}
-SRCVER=${SRCVER:-1.9.0}
+VERSION=${VERSION:-1.9.3}
+SRCVER=${SRCVER:-1.9.3}
 
 
 # I believe the rule is one more than the number of cores?
@@ -56,7 +56,7 @@ cd $TMP
 
 mkdir wine_src
 cd wine_src
-wget http://mirrors.ibiblio.org/wine/source/1.8/wine-$SRCVER.tar.bz2
+wget http://mirrors.ibiblio.org/wine/source/1.9/wine-$SRCVER.tar.bz2
 wget https://github.com/wine-compholio/wine-staging/archive/v$SRCVER.tar.gz
 wget http://slackbuilds.org/slackbuilds/$SLACK_VERSION/system/wine/slack-desc
 
