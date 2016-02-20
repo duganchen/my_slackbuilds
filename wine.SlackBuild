@@ -80,6 +80,7 @@ autoreconf -i
 CFLAGS="$SLKCFLAGS" \
 CXXFLAGS="$SLKCFLAGS" \
 ./configure \
+  --with-xattr \
   --prefix=/usr \
   --mandir=/usr/man \
   --docdir=/usr/doc/wine-$VERSION \
