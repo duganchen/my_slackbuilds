@@ -61,7 +61,7 @@ wget https://github.com/wine-compholio/wine-staging/archive/v$SRCVER.tar.gz
 wget http://slackbuilds.org/slackbuilds/$SLACK_VERSION/system/wine/slack-desc
 
 tar xvf wine-$SRCVER.tar.bz2
-tar xvf v$SRCVER.tar.gz --strip-components 1
+tar xvf v$SRCVER.tar.gz
 
 cd wine-staging-$SRCVER/patches
 ./patchinstall.sh --all DESTDIR=$TMP/wine_src/wine-$SRCVER
