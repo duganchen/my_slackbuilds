@@ -6,14 +6,19 @@ set -e
 # essentially the same SlackBuild, except that it checks out the source
 # from git.
 
-REPO=https://github.com/coelckers/gzdoom.git
-PRGNAM=$(basename $REPO .git)
-TMP=${TMP:-/tmp}
-PKG=$TMP/package-$PRGNAM
-VERSION=g2.1.0
+PRGNAM=gzdoom
+REPO=https://github.com/coelckers/${PRGNAM}.git
+VERSION=g2.1.1
+TARBALL=${VERSION}.tar.gz
+SRCURL=https://github.com/coelckers/gzdoom/archive/$TARBALL
 XBRZ_VERSION=1.4
+XBRZ_PATCH=gzdoom-g2.1.0_xBRZ-${XBRZ_VERSION}.diff
 BUILD=1
 TAG=dc
+
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-$PRGNAM
+
 
 if [[ -z $ARCH ]]; then
 	case $( uname -m ) in
@@ -45,27 +50,26 @@ esac
 CWD=$PWD
 
 rm -rf $PKG
-rm -rf $TMP/$PRGNAM
+rm -rf ${TMP}/${PRGNAM}-${VERSION}
 
 cd $TMP
 
-git clone $REPO
-cd $PRGNAM
+rm -f $TARBALL
 
-git checkout $VERSION
-git reset --hard
-git clean -f -d -x
+wget $SRCURL
+tar xvf $TARBALL
+cd ${PRGNAM}-${VERSION}
 
-patch -p1 --verbose < $CWD/gzdoom-${VERSION}_xBRZ-${XBRZ_VERSION}.diff
+patch -p1 --verbose < $CWD/$XBRZ_PATCH
 
-curl -O https://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.png
-curl -O https://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.desktop
+wget https://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.png
+wget https://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.desktop
 wget http://downloads.sourceforge.net/project/xbrz/xBRZ/xBRZ_${XBRZ_VERSION}.zip
 
 mkdir -p src/gl/xBRZ
 cd src/gl/xBRZ
 unzip ../../../xBRZ_${XBRZ_VERSION}.zip
-cd $TMP/$PRGNAM
+cd $TMP/${PRGNAM}-${VERSION}
 
 chown -R root:root .
 find -L . \
