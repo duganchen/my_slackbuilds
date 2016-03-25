@@ -58,8 +58,8 @@ git clean -f -d -x
 
 patch -p1 --verbose < $CWD/gzdoom-${VERSION}_xBRZ-${XBRZ_VERSION}.diff
 
-curl -O http://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.png
-curl -O http://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.desktop
+curl -O https://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.png
+curl -O https://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.desktop
 wget http://downloads.sourceforge.net/project/xbrz/xBRZ/xBRZ_${XBRZ_VERSION}.zip
 
 mkdir -p src/gl/xBRZ
