@@ -64,6 +64,8 @@ patch -p1 --verbose < $CWD/$XBRZ_PATCH
 
 wget https://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.png
 wget https://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.desktop
+wget https://slackbuilds.org/slackbuilds/14.1/games/gzdoom/slack-desc
+wget https://slackbuilds.org/slackbuilds/14.1/games/gzdoom/doinst.sh
 wget http://downloads.sourceforge.net/project/xbrz/xBRZ/xBRZ_${XBRZ_VERSION}.zip
 
 mkdir -p src/gl/xBRZ
@@ -105,17 +107,20 @@ find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | gr
 
 # .desktop written for this SlackBuild
 mkdir -p $PKG/usr/share/applications
-cat $TMP/$PRGNAM/$PRGNAM.desktop > $PKG/usr/share/applications/$PRGNAM.desktop
+cat $TMP/${PRGNAM}-${VERSION}/${PRGNAM}.desktop > $PKG/usr/share/applications/${PRGNAM}.desktop
 
 # PNG converted from Windows icon
 mkdir -p $PKG/usr/share/pixmaps
-cat $TMP/$PRGNAM/$PRGNAM.png > $PKG/usr/share/pixmaps/$PRGNAM.png
+cat $TMP/${PRGNAM}-${VERSION}/${PRGNAM}.png > $PKG/usr/share/pixmaps/${PRGNAM}.png
 
-mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
-cp -a docs/* $PKG/usr/doc/$PRGNAM-$VERSION
+mkdir -p $PKG/usr/doc/${PRGNAM}-${VERSION}
+cp -a docs/* $PKG/usr/doc/${PRGNAM}-${VERSION}
 
 # Fix DOS CRLF line endings
 sed -i 's/\r//' $PKG/usr/doc/$PRGNAM-$VERSION/*
 
+mkdir -p $PKG/install
+cat $TMP/${PRGNAM}-${VERSION}/slack-desc > $PKG/install/slack-desc
+cat $TMP/${PRGNAM}-${VERSION}/doinst.sh > $PKG/install/doinst.sh
 cd $PKG
 /sbin/makepkg -l y -c n $TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.txz
