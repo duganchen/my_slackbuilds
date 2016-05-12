@@ -54,11 +54,11 @@ EOF
 # This needs to be moved down, as it causes the HEREDOC above to not work.
 set -e
 
-# I believe the rule is one more than the number of cores?
-((JOBS = $( cat /proc/cpuinfo  | grep -c processor ) + 1))
-
 LATEST=$(curl -H "Accept: application/vnd.github.v3.raw+json" https://api.github.com/repos/wine-compholio/wine-staging/tags | python -c "$PARSER")
 VERSION=${LATEST:1}
+
+# I believe the rule is one more than the number of cores?
+((JOBS = $( cat /proc/cpuinfo  | grep -c processor ) + 1))
 
 rm -rf $PKG $TMP/wine_src
 cd $TMP
