@@ -1,25 +1,15 @@
 #!/bin/env zsh
 
-set -e
-
 # Builds Wine with the wine-staging patches. On a 32-bit or 64-bit multilib
 # system, it will build a 32-bit Wine package. I have not tested it with a
 # pure 64-bit system.
-
+#
 # This is based on the SBo SlackBuild.
-
-# Set this to to whatever version you want to build.
-VERSION=${VERSION:-1.9.8}
-
-# I believe the rule is one more than the number of cores?
-((JOBS = $( cat /proc/cpuinfo  | grep -c processor ) + 1))
 
 BUILD=${BUILD:-1}
 TAG=${TAG:-dc}
 TMP=${TMP:-/tmp}
 PKG=$TMP/package-wine
-SLACK_VERSION=${SLACK_VERSION:-14.1}
-
 
 if [[ -z $ARCH ]]; then
 	case $( uname -m ) in
@@ -48,18 +38,39 @@ case $ARCH in
 		;;
 esac
 
-rm -rf $PKG $TMP/wine_src
+# Query GitHub for the latest version
 
+echo a
+
+read -r -d '' PARSER <<EOF
+# Get the latest version
+import json
+import sys
+
+releases = json.load(sys.stdin)
+print releases[0]["name"]
+EOF
+
+# This needs to be moved down, as it causes the HEREDOC above to not work.
+set -e
+
+# I believe the rule is one more than the number of cores?
+((JOBS = $( cat /proc/cpuinfo  | grep -c processor ) + 1))
+
+LATEST=$(curl -H "Accept: application/vnd.github.v3.raw+json" https://api.github.com/repos/wine-compholio/wine-staging/tags | python -c "$PARSER")
+VERSION=${LATEST:1}
+
+rm -rf $PKG $TMP/wine_src
 cd $TMP
 
 mkdir wine_src
 cd wine_src
 wget http://mirrors.ibiblio.org/wine/source/1.9/wine-$VERSION.tar.bz2
-wget https://github.com/wine-compholio/wine-staging/archive/v$VERSION.tar.gz
-wget http://slackbuilds.org/slackbuilds/$SLACK_VERSION/system/wine/slack-desc
+wget --content-disposition https://github.com/wine-compholio/wine-staging/archive/${LATEST}.tar.gz
+wget https://raw.githubusercontent.com/Ponce/slackbuilds/master/system/wine/slack-desc
 
-tar xvf wine-$VERSION.tar.bz2
-tar xvf v$VERSION.tar.gz
+tar xvf wine-${VERSION}.tar.bz2
+tar xvf wine-staging-${VERSION}.tar.gz
 
 cd wine-staging-$VERSION/patches
 ./patchinstall.sh --all DESTDIR=$TMP/wine_src/wine-$VERSION
@@ -101,6 +112,3 @@ cat $TMP/wine_src/slack-desc > $PKG/install/slack-desc
 
 cd $PKG
 /sbin/makepkg -l y -c n $TMP/wine-${VERSION}-${ARCH}-$BUILD$TAG.txz
-
-rm -rf $TMP/wine_src
-rm -rf $PKG
