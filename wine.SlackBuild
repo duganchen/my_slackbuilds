@@ -40,8 +40,6 @@ esac
 
 # Query GitHub for the latest version
 
-echo a
-
 read -r -d '' PARSER <<EOF
 # Get the latest version
 import json
