@@ -64,11 +64,11 @@ cd $TMP
 mkdir wine_src
 cd wine_src
 wget http://mirrors.ibiblio.org/wine/source/1.9/wine-$VERSION.tar.bz2
-wget --content-disposition https://github.com/wine-compholio/wine-staging/archive/${LATEST}.tar.gz
+wget https://github.com/wine-compholio/wine-staging/archive/${LATEST}/wine-staging-${LATEST}.tar.gz
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/master/system/wine/slack-desc
 
 tar xvf wine-${VERSION}.tar.bz2
-tar xvf wine-staging-${VERSION}.tar.gz
+tar xvf wine-staging-${LATEST}.tar.gz
 
 cd wine-staging-$VERSION/patches
 ./patchinstall.sh --all DESTDIR=$TMP/wine_src/wine-$VERSION
