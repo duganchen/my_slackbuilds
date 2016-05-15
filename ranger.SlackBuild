@@ -25,4 +25,4 @@ do
 	gzip $m
 done
 cd $TMP/package-ranger
-/sbin/makepkg -l y -c n /tmp/ranger-${VERSION}-${ARCH}}-1dc.txz
+/sbin/makepkg -l y -c n /tmp/ranger-${VERSION}-${ARCH}-1dc.txz
