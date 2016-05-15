@@ -65,15 +65,15 @@ VERSION=$(curl -H "Accept: application/vnd.github.v3.raw+json" https://api.githu
 set -e
 
 rm -rf $PKG
-rm -rf ${TMP}/${PRGNAM}-${VERSION}
-rm -rf ${TMP}/${PRGNAM}-${VERSION}.tar.gz
+rm -rf ${TMP}/${PRGNAM}
 
 cd $TMP
 
-wget https://github.com/coelckers/${PRGNAM}/archive/$VERSION/${PRGNAM}-${VERSION}.tar.gz
+git clone https://github.com/coelckers/${PRGNAM}.git
 
-tar xvf ${PRGNAM}-${VERSION}.tar.gz
-cd ${PRGNAM}-${VERSION}
+cd $PRGNAM
+
+git checkout $VERSION
 
 patch -p1 --verbose < $CWD/$XBRZ_PATCH
 
@@ -86,7 +86,7 @@ wget http://downloads.sourceforge.net/project/xbrz/xBRZ/xBRZ_${XBRZ_VERSION}.zip
 mkdir -p src/gl/xBRZ
 cd src/gl/xBRZ
 unzip ../../../xBRZ_${XBRZ_VERSION}.zip
-cd $TMP/${PRGNAM}-${VERSION}
+cd $TMP/${PRGNAM}
 
 chown -R root:root .
 find -L . \
@@ -122,11 +122,11 @@ find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | gr
 
 # .desktop written for this SlackBuild
 mkdir -p $PKG/usr/share/applications
-cat $TMP/${PRGNAM}-${VERSION}/${PRGNAM}.desktop > $PKG/usr/share/applications/${PRGNAM}.desktop
+cat $TMP/${PRGNAM}/${PRGNAM}.desktop > $PKG/usr/share/applications/${PRGNAM}.desktop
 
 # PNG converted from Windows icon
 mkdir -p $PKG/usr/share/pixmaps
-cat $TMP/${PRGNAM}-${VERSION}/${PRGNAM}.png > $PKG/usr/share/pixmaps/${PRGNAM}.png
+cat $TMP/${PRGNAM}/${PRGNAM}.png > $PKG/usr/share/pixmaps/${PRGNAM}.png
 
 mkdir -p $PKG/usr/doc/${PRGNAM}-${VERSION}
 cp -a docs/* $PKG/usr/doc/${PRGNAM}-${VERSION}
@@ -135,7 +135,7 @@ cp -a docs/* $PKG/usr/doc/${PRGNAM}-${VERSION}
 sed -i 's/\r//' $PKG/usr/doc/$PRGNAM-$VERSION/*
 
 mkdir -p $PKG/install
-cat $TMP/${PRGNAM}-${VERSION}/slack-desc > $PKG/install/slack-desc
-cat $TMP/${PRGNAM}-${VERSION}/doinst.sh > $PKG/install/doinst.sh
+cat $TMP/${PRGNAM}/slack-desc > $PKG/install/slack-desc
+cat $TMP/${PRGNAM}/doinst.sh > $PKG/install/doinst.sh
 cd $PKG
-/sbin/makepkg -l y -c n $TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.txz
+/sbin/makepkg -l y -c n ${TMP}/${PRGNAM}-${VERSION}-${ARCH}-${BUILD}${TAG}.txz
