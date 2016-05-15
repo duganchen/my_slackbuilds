@@ -1,18 +1,14 @@
 #!/bin/env zsh
 
-set -e
-
 # Massive credit to the B.Watson for the SlackBuilds.org script. This is
 # essentially the same SlackBuild, except that it checks out the source
 # from git.
 
 PRGNAM=gzdoom
 REPO=https://github.com/coelckers/${PRGNAM}.git
-VERSION=g2.1.1
-TARBALL=${VERSION}.tar.gz
-SRCURL=https://github.com/coelckers/gzdoom/archive/$TARBALL
+
 XBRZ_VERSION=1.4
-XBRZ_PATCH=gzdoom-g2.1.0_xBRZ-${XBRZ_VERSION}.diff
+XBRZ_PATCH=${PRGNAM}-g2.1.0_xBRZ-${XBRZ_VERSION}.diff
 BUILD=1
 TAG=dc
 
@@ -49,23 +45,42 @@ esac
 
 CWD=$PWD
 
+# Query GitHub for the latest version
+
+read -r -d '' PARSER <<EOF
+# Get the latest version
+import json
+import sys
+
+releases = json.load(sys.stdin)
+for release in releases:
+	if release["tag_name"].startswith("g2"):
+		print release["tag_name"]
+		break
+EOF
+
+VERSION=$(curl -H "Accept: application/vnd.github.v3.raw+json" https://api.github.com/repos/coelckers/gzdoom/releases | python -c $PARSER)
+
+# This needs to be moved down, as it causes the HEREDOC above to not work.
+set -e
+
 rm -rf $PKG
 rm -rf ${TMP}/${PRGNAM}-${VERSION}
+rm -rf ${TMP}/${PRGNAM}-${VERSION}.tar.gz
 
 cd $TMP
 
-rm -f $TARBALL
+wget https://github.com/coelckers/${PRGNAM}/archive/$VERSION/${PRGNAM}-${VERSION}.tar.gz
 
-wget $SRCURL
-tar xvf $TARBALL
+tar xvf ${PRGNAM}-${VERSION}.tar.gz
 cd ${PRGNAM}-${VERSION}
 
 patch -p1 --verbose < $CWD/$XBRZ_PATCH
 
-wget https://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.png
-wget https://slackbuilds.org/slackbuilds/14.1/games/gzdoom/gzdoom.desktop
-wget https://slackbuilds.org/slackbuilds/14.1/games/gzdoom/slack-desc
-wget https://slackbuilds.org/slackbuilds/14.1/games/gzdoom/doinst.sh
+wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/${PRGNAM}.png
+wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/${PRGNAM}.desktop
+wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/slack-desc
+wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/doinst.sh
 wget http://downloads.sourceforge.net/project/xbrz/xBRZ/xBRZ_${XBRZ_VERSION}.zip
 
 mkdir -p src/gl/xBRZ
