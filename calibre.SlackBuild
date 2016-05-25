@@ -6,6 +6,7 @@
 
 set -e
 
+
 CWD=`pwd`
 VERSION=`wget -O - -o /dev/null http://status.calibre-ebook.com/latest`
 TMP=${TMP:-/tmp}

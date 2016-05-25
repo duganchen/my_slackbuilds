@@ -1,0 +1,93 @@
+#!/bin/env zsh
+
+# Build vte-ng, a dependency for termite.
+
+# vte-ng is a patched version of vte3 and conflicts with it.
+# This is based on the SBo SlackBuild.
+
+#!/bin/env zsh
+
+set -e
+
+PRGNAM=vte-ng
+VERSION=${VERSION:-0.44.1.b}
+BUILD=${BUILD:-1}
+TAG=${TAG:-_SBo}
+
+OWNER=thestinger
+
+if [ -z "$ARCH" ]; then
+  case "$( uname -m )" in
+    i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+if [ "$ARCH" = "i486" ]; then
+  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+  LIBDIRSUFFIX=""
+elif [ "$ARCH" = "s390" ]; then
+  SLKCFLAGS="-O2"
+  LIBDIRSUFFIX=""
+elif [ "$ARCH" = "x86_64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  LIBDIRSUFFIX="64"
+else
+  SLKCFLAGS="-O2"
+  LIBDIRSUFFIX=""
+fi
+
+CWD=$(pwd)
+TMP=${TMP:-/tmp/SBo}
+PKG=$TMP/package-$PRGNAM
+OUTPUT=${OUTPUT:-/tmp}
+
+set -e
+
+rm -rf $PKG
+mkdir -p $TMP $PKG $OUTPUT
+cd $TMP
+rm -rf ${PRGNAM}-${VERSION}.tar.gz ${PRGNAM}-${VERSION}
+wget https://github.com/${OWNER}/${PRGNAM}/archive/${VERSION}/${PRGNAM}-${VERSION}.tar.gz
+tar xvf ${TMP}/${PRGNAM}-${VERSION}.tar.gz
+cd ${PRGNAM}-${VERSION}
+
+wget https://raw.githubusercontent.com/Ponce/slackbuilds/master/libraries/vte3/slack-desc
+
+chown -R root:root .
+find -L . \
+ \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+ -o -perm 511 \) -exec chmod 755 {} \; -o \
+ \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+ -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+sh autogen.sh
+
+# Configure:
+CFLAGS="$SLKCFLAGS" \
+./configure \
+  --prefix=/usr \
+  --libdir=/usr/lib${LIBDIRSUFFIX} \
+  --sysconfdir=/etc \
+  --mandir=/usr/man \
+  --docdir=/usr/doc/$PRGNAM-$VERSION \
+  --disable-static \
+  --enable-introspection \
+  --build=$ARCH-slackware-linux
+
+make
+make install DESTDIR=$PKG
+
+find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+  | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
+cp -a AUTHORS ChangeLog.pre-git COPYING* HACKING MAINTAINERS NEWS README* \
+  $PKG/usr/doc/$PRGNAM-$VERSION
+
+mkdir -p $PKG/install
+cat slack-desc > $PKG/install/slack-desc
+
+cd $PKG
+/sbin/makepkg -l y -c n $OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}
