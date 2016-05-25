@@ -19,7 +19,7 @@ cd ranger
 VERSION=$(git rev-parse --short HEAD)
 sed -i 's/share\/doc/doc/g' setup.py
 sed -i 's/share\/man/man/g' setup.py
-python setup.py install --root=$TMP/package-ranger
+python3 setup.py install --root=$TMP/package-ranger
 for m in $TMP/package-ranger/usr/man/man[0-9]/*.[0-9]
 do
 	gzip $m
