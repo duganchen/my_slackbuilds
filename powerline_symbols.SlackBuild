@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -e
+# set -e
 
 REPO=https://github.com/powerline/powerline.git
 PRGNAM="$(basename $REPO .git)"
@@ -8,6 +8,21 @@ TMP="${TMP:-/tmp}"
 PKG="$TMP/package-$PRGNAM"
 BUILD=1
 TAG=dc
+
+read -r -d '' PARSER <<EOF
+# Get the latest version
+import json
+import sys
+
+releases = json.load(sys.stdin)
+from pprint import pprint
+pprint(releases)
+EOF
+
+echo "$(curl -H "Accept: application/vnd.github.v3.raw+json" https://api.github.com/repos/wine-compholio/wine-staging/tags | python -c $PARSER)"
+
+exit
+
 
 rm -rf "$PKG"
 rm -rf "$TMP/$PRGNAM"
