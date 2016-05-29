@@ -52,6 +52,12 @@ find -L . \
 make
 make install INSTALL_ROOT=$PKG
 
+mkdir -p $PKG/etc/profile.d
+echo export QT_QPA_PLATFORMTHEME=qt5ct > $PKG/etc/profile.d/qt5ct.sh
+chmod +x $PKG/etc/profile.d/qt5ct.sh
+echo setenv -x QT_QPA_PLATFORMTHEME qt5ct > $PKG/etc/profile.d/qt5ct.csh
+chmod +x $PKG/etc/profile.d/qt5ct.csh
+
 find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
 	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
