@@ -55,11 +55,6 @@ mkdir -p $PKG/usr/doc/${REPO}-$VERSION
 cp *.txt *.md $PKG/usr/doc/${REPO}-${VERSION}
 mkdir -p $PKG/etc/fonts/conf.avail
 cp fontconfig/56-twemoji-color.conf $PKG/etc/fonts/conf.avail
-mkdir -p $PKG/etc/fonts/conf.d
-(
-cd $PKG/etc/fonts/conf.d
-ln -s ../conf.avail/56-twemoji-color.conf .  
-)
 
 mkdir -p $PKG/install
 
