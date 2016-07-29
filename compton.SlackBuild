@@ -56,7 +56,7 @@ find -L . \
 CFLAGS=$SLKCFLAGS \
  CXXFLAGS=$SLKCFLAGS \
  make \
- PREFIX=$PKG/usr make install DOCDIR=$PKG/usr/doc
+ PREFIX=$PKG/usr install DOCDIR=$PKG/usr/doc
 
 find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
 	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
