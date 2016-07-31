@@ -9,7 +9,7 @@ set -e
 VERSION=0.4.3
 PRGNAM=brscan4
 TMP=${TMP:-/tmp}
-BUILD=${BUILD:-2}
+BUILD=${BUILD:-3}
 TAG=${TAG:-dc}
 CWD=$PWD
 PKG=$TMP/package-$PRGNAM
