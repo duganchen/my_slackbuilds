@@ -2,7 +2,7 @@
 
 set -e
 
-VERSION=${VERSION:-0.23}
+VERSION=${VERSION:-0.24}
 TMP=${TMP:-/tmp}
 PKG=$TMP/package-qt5ct
 BUILD=1

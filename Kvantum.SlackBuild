@@ -1,0 +1,83 @@
+#!/bin/env zsh
+
+set -e
+
+REPO=https://github.com/tsujan/Kvantum.git
+PRGNAM=$(basename $REPO .git)
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-$PRGNAM
+BUILD=1
+TAG=dc
+
+if [[ -z $ARCH ]]; then
+	case $( uname -m ) in
+		i?86) ARCH=i486 ;;
+		arm*) ARCH=arm ;;
+		*) ARCH=$( uname -m ) ;;
+	esac
+fi
+
+case $ARCH in
+	"i486")
+		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"i686")
+		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"x86_64")
+		SLKCFLAGS="-O2 -fPIC"
+		LIBDIRSUFFIX="64"
+		;;
+	*)
+	 	SLKCFLAGS="-O2"
+		LIBDIRSUFFIX=""
+		;;
+esac
+
+rm -rf $PKG
+rm -rf $TMP/$PRGNAM
+
+mkdir -p $PKG/usr/doc
+cd $TMP
+git clone $REPO
+cd $PRGNAM/$PRGNAM
+
+VERSION=$( git rev-parse --short HEAD )
+
+# chown -R root:root .
+find -L . \
+	\( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+	-o -perm 511 \) -exec chmod 755 {} \; -o \
+	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+qmake
+make
+install -Dm644 style/libkvantum.so $PKG/usr/lib$LIBDIRSUFFIX/qt/plugins/styles/libkvantum.so.5
+
+git clean -f -d -x
+
+/usr/lib64/qt5/bin/qmake
+make
+install -Dm644 style/libkvantum.so $PKG/usr/lib$LIBDIRSUFFIX/qt5/plugins/styles/libkvantum.so.5
+
+cd kvantumpreview
+/usr/lib64/qt5/bin/qmake
+make
+install -Dm0755 kvantumpreview $PKG/usr/bin/kvantumpreview
+install -Dm644 kvantum.svg $PKG/usr/share/pixmaps/kvantum.svg
+
+cd ../kvantummanager
+/usr/lib64/qt5/bin/qmake
+make
+install -Dm755 kvantummanager $PKG/usr/bin/kvantummanager
+install -Dm644 data/kvantummanager.desktop $PKG/usr/share/applications/kvantummanager.desktop
+
+
+find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+cd $PKG
+/sbin/makepkg -l y -c n $TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.txz
