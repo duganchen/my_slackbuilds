@@ -5,7 +5,7 @@ set -e
 # for the Generic LPR Printer driver.
 
 VERSION=3.1.0
-PRGNAM=brgenml1lpr
+PRGNAM=brgenml1cupswrapper
 TMP=${TMP:-/tmp}
 BUILD=${BUILD:-1}
 TAG=${TAG:-dc}
