@@ -1,0 +1,11 @@
+diff -rupN xBRZ-1.4.orig/xbrz.cpp xBRZ-1.4/xbrz.cpp
+--- xBRZ-1.4.orig/xbrz.cpp	2015-07-25 19:43:54.000000000 -0700
++++ xBRZ-1.4/xbrz.cpp	2016-08-21 13:30:29.217999171 -0700
+@@ -17,6 +17,7 @@
+ #include <cassert>
+ #include <algorithm>
+ #include <vector>
++#include <cmath>
+ 
+ namespace
+ {

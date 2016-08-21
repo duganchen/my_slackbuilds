@@ -86,6 +86,7 @@ wget http://downloads.sourceforge.net/project/xbrz/xBRZ/xBRZ_${XBRZ_VERSION}.zip
 mkdir -p src/gl/xBRZ
 cd src/gl/xBRZ
 unzip ../../../xBRZ_${XBRZ_VERSION}.zip
+patch -p1 < $CWD/xBRZ-1.4_cmath.diff
 cd $TMP/${PRGNAM}
 
 chown -R root:root .
