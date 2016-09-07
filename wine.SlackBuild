@@ -52,9 +52,8 @@ EOF
 # This needs to be moved down, as it causes the HEREDOC above to not work.
 set -e
 
-# LATEST=$(curl -H "Accept: application/vnd.github.v3.raw+json" https://api.github.com/repos/wine-compholio/wine-staging/tags | python -c $PARSER)
-# VERSION=${LATEST:1}
-VERSION=1.9.8
+LATEST=$(curl -H "Accept: application/vnd.github.v3.raw+json" https://api.github.com/repos/wine-compholio/wine-staging/tags | python -c $PARSER)
+VERSION=${LATEST:1}
 
 # I believe the rule is one more than the number of cores?
 ((JOBS = $( cat /proc/cpuinfo  | grep -c processor ) + 1))
@@ -65,14 +64,14 @@ cd $TMP
 mkdir wine_src
 cd wine_src
 wget http://mirrors.ibiblio.org/wine/source/1.9/wine-$VERSION.tar.bz2
-# wget https://github.com/wine-compholio/wine-staging/archive/${LATEST}/wine-staging-${LATEST}.tar.gz
+wget https://github.com/wine-compholio/wine-staging/archive/${LATEST}/wine-staging-${LATEST}.tar.gz
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/master/system/wine/slack-desc
 
 tar xvf wine-${VERSION}.tar.bz2
-# tar xvf wine-staging-${LATEST}.tar.gz
+tar xvf wine-staging-${LATEST}.tar.gz
 
-# cd wine-staging-$VERSION/patches
-# ./patchinstall.sh --all DESTDIR=$TMP/wine_src/wine-$VERSION
+cd wine-staging-$VERSION/patches
+./patchinstall.sh --all DESTDIR=$TMP/wine_src/wine-$VERSION
 
 cd $TMP/wine_src/wine-$VERSION
 
