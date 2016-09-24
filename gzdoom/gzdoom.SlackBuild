@@ -4,6 +4,11 @@
 # essentially the same SlackBuild, except that it checks out the source
 # from git.
 
+# If you have a fmodapi 4.44.50 or later tarball, drop it in the SlackBuild
+# directory.  There are license issues with distributing it
+# (you're actually supposed to email the company for access). For now, there's a link here:
+# https://aur.archlinux.org/packages/fmodex/
+
 PRGNAM=gzdoom
 REPO=https://github.com/coelckers/${PRGNAM}.git
 
@@ -94,16 +99,15 @@ unzip ../../../xBRZ_${XBRZ_VERSION}.zip
 patch -p1 < $CWD/xBRZ-1.4_cmath.diff
 cd $TMP/${PRGNAM}
 
-# Uncomment for FMOD support
-#
-# There are license issues with distributing this, and you're going to
-# have to ask the company for access to the tarball yourself. Sorry.
-#
-# FMOD_SOURCE=/path/to/fmodapi44463linux.tar.gz
-# tar xf ${FMOD_SOURCE}
-# mv $(basename $FMOD_SOURCE .tar.gz) fmod
-# # Support versions of fmod newer than 4.44.50
-# patch -p1 < $CWD/newer_fmod.diff
+# If you have an FMOD Ex tarball in the SlackBuild directory, thern build it with fmod support.
+for fmodsrc in $CWD/fmodapi444??linux.tar.gz; do
+	if [[ -f $fmodsrc ]]; then
+		tar xf $fmodsrc
+		mv $(basename $fmodsrc .tar.gz) fmod
+		patch -p1 < $CWD/newer_fmod.diff
+		break
+	fi
+done
 
 chown -R root:root .
 find -L . \
