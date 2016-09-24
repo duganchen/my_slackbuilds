@@ -12,14 +12,6 @@
 PRGNAM=gzdoom
 REPO=https://github.com/coelckers/${PRGNAM}.git
 
-# xBRZ support. Taken from this rejected pull request:
-# https://github.com/coelckers/gzdoom/pull/7
-# As far as I can tell, the license issues just mean that I can't distribute
-# the source after the patch is applied, or any binaries created from that source.
-# This will stay until I hear otherwise from either project.
-XBRZ_VERSION=1.4
-XBRZ_PATCH=${PRGNAM}-g2.1.0_xBRZ-${XBRZ_VERSION}.diff
-
 BUILD=1
 TAG=dc
 
@@ -60,44 +52,36 @@ CWD=$PWD
 read -r -d '' PARSER <<EOF
 # Get the latest version
 import json
+import re
 import sys
 
-releases = json.load(sys.stdin)
-for release in releases:
-	if release["tag_name"].startswith("g2"):
-		print release["tag_name"]
+for release in json.load(sys.stdin):
+	# This would be the latest non-pre release:
+	if re.match(r'^g\d.\d.\d$', release['name']):
+		print release['name']
 		break
 EOF
 
-VERSION=$(curl -H "Accept: application/vnd.github.v3.raw+json" https://api.github.com/repos/coelckers/gzdoom/releases | python -c $PARSER)
+VERSION=$(curl -H "Accept: application/vnd.github.v3.raw+json" https://api.github.com/repos/coelckers/gzdoom/tags | python -c $PARSER)
 
 # This needs to be moved down, as it causes the HEREDOC above to not work.
 set -e
 
 rm -rf $PKG
-rm -rf ${TMP}/${PRGNAM}
+rm -rf ${TMP}/${PRGNAM}-${VERSION}
+rm -f ${TMP}/${PRGNAM}-${VERSION}.tar.gz
 
 cd $TMP
 
-git clone https://github.com/coelckers/${PRGNAM}.git
+wget https://github.com/coelckers/${PRGNAM}/archive/${VERSION}/${PRGNAM}-${VERSION}.tar.gz
+tar xf ${PRGNAM}-${VERSION}.tar.gz
 
-cd $PRGNAM
-
-git checkout $VERSION
-
-patch -p1 --verbose < $CWD/$XBRZ_PATCH
+cd ${PRGNAM}-${VERSION}
 
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/${PRGNAM}.png
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/${PRGNAM}.desktop
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/slack-desc
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/doinst.sh
-wget http://downloads.sourceforge.net/project/xbrz/xBRZ/xBRZ_${XBRZ_VERSION}.zip
-
-mkdir -p src/gl/xBRZ
-cd src/gl/xBRZ
-unzip ../../../xBRZ_${XBRZ_VERSION}.zip
-patch -p1 < $CWD/xBRZ-1.4_cmath.diff
-cd $TMP/${PRGNAM}
 
 # If you have an FMOD Ex tarball in the SlackBuild directory, thern build it with fmod support.
 for fmodsrc in $CWD/fmodapi444??linux.tar.gz; do
@@ -142,20 +126,18 @@ find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | gr
 
 # .desktop written for this SlackBuild
 mkdir -p $PKG/usr/share/applications
-cat $TMP/${PRGNAM}/${PRGNAM}.desktop > $PKG/usr/share/applications/${PRGNAM}.desktop
+cat $TMP/${PRGNAM}-${VERSION}/${PRGNAM}.desktop > $PKG/usr/share/applications/${PRGNAM}.desktop
 
 # PNG converted from Windows icon
 mkdir -p $PKG/usr/share/pixmaps
-cat $TMP/${PRGNAM}/${PRGNAM}.png > $PKG/usr/share/pixmaps/${PRGNAM}.png
+cat $TMP/${PRGNAM}-${VERSION}/${PRGNAM}.png > $PKG/usr/share/pixmaps/${PRGNAM}.png
 
 mkdir -p $PKG/usr/doc/${PRGNAM}-${VERSION}
 cp -a docs/* $PKG/usr/doc/${PRGNAM}-${VERSION}
 
-# Fix DOS CRLF line endings
-sed -i 's/\r//' $PKG/usr/doc/$PRGNAM-$VERSION/*
-
 mkdir -p $PKG/install
-cat $TMP/${PRGNAM}/slack-desc > $PKG/install/slack-desc
-cat $TMP/${PRGNAM}/doinst.sh > $PKG/install/doinst.sh
+cat $TMP/${PRGNAM}-${VERSION}/slack-desc > $PKG/install/slack-desc
+cat $TMP/${PRGNAM}-${VERSION}/doinst.sh > $PKG/install/doinst.sh
+
 cd $PKG
 /sbin/makepkg -l y -c n ${TMP}/${PRGNAM}-${VERSION}-${ARCH}-${BUILD}${TAG}.txz
