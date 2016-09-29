@@ -28,19 +28,19 @@ fi
 
 case $ARCH in
 	"i486")
-		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+		SLKCFLAGS="-O2 -march=i486 -mtune=i686 -Wl,-rpath=/usr/lib/gzdoom"
 		LIBDIRSUFFIX=""
 		;;
 	"i686")
-		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+		SLKCFLAGS="-O2 -march=i686 -mtune=i686 -Wl,-rpath=/usr/lib/gzdoom"
 		LIBDIRSUFFIX=""
 		;;
 	"x86_64")
-		SLKCFLAGS="-O2 -fPIC"
+		SLKCFLAGS="-O2 -fPIC -Wl,-rpath=/usr/lib64/gzdoom"
 		LIBDIRSUFFIX="64"
 		;;
 	*)
-	 	SLKCFLAGS="-O2"
+	 	SLKCFLAGS="-O2 -Wl,-rpath=/usr/lib/gzdoom"
 		LIBDIRSUFFIX=""
 		;;
 esac
@@ -117,6 +117,7 @@ install -m0644 *.pk3 $PKG/usr/share/games/doom/
 if [[ -e liboutput_sdl.so ]]; then
 	mkdir -p $PKG/usr/lib$LIBDIRSUFFIX/$PRGNAM
 	install -m0755 -s liboutput_sdl.so $PKG/usr/lib$LIBDIRSUFFIX/$PRGNAM/liboutput_sdl.so
+	cp -a ../fmod/api/lib/libfmodex${LIBDIRSUFFIX}-4.44.??.so $PKG/usr/lib$LIBDIRSUFFIX/$PRGNAM/
 fi
 
 cd -
