@@ -1,0 +1,86 @@
+#!/bin/env zsh
+
+set -e
+
+OWNER=vifm
+PRGNAM=vifm
+
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-$PRGNAM
+BUILD=1
+TAG=dc
+
+if [[ -z $ARCH ]]; then
+	case $( uname -m ) in
+		i?86) ARCH=i486 ;;
+		arm*) ARCH=arm ;;
+		*) ARCH=$( uname -m ) ;;
+	esac
+fi
+
+case $ARCH in
+	"i486")
+		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"i686")
+		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"x86_64")
+		SLKCFLAGS="-O2 -fPIC"
+		LIBDIRSUFFIX="64"
+		;;
+	*)
+	 	SLKCFLAGS="-O2"
+		LIBDIRSUFFIX=""
+		;;
+esac
+mkdir -p $PKG/usr/doc
+
+rm -rf $PKG
+rm -rf $TMP/$PRGNAM
+
+cd $TMP
+git clone https://github.com/${OWNER}/${PRGNAM}.git
+cd $PRGNAM
+
+VERSION=$( git rev-parse --short HEAD )
+
+wget https://slackbuilds.org/slackbuilds/14.2/system/vifm/slack-desc
+wget https://slackbuilds.org/slackbuilds/14.2/system/vifm/doinst.sh
+
+chown -R root:root .
+find -L . \
+	\( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+	-o -perm 511 \) -exec chmod 755 {} \; -o \
+	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+CFLAGS="$SLKCFLAGS" \
+CXXFLAGS="$SLKCFLAGS" \
+./configure \
+  --prefix=/usr \
+  --mandir=/usr/man \
+  --build=$ARCH-slackware-linux
+
+# Since datarootdir doesn't work as expected, modify Makefile for png and desktop files.
+sed -i -e 's;dir)/applications;rootdir)/applications;' -e 's;dir)/pixmaps;rootdir)/pixmaps;' src/Makefile
+
+make
+make install DESTDIR=$PKG
+
+find $PKG/usr/man -type f -exec gzip -9 {} \;
+
+# Add the version number to the /usr/doc/vifm directory.
+# and move it to the correct location.
+mv $PKG/usr/share/doc $PKG/usr/doc
+mv $PKG/usr/doc/vifm $PKG/usr/doc/$PRGNAM-$VERSION
+
+cp -a AUTHORS BUGS COPYING ChangeLog INSTALL README TODO $PKG/usr/doc/$PRGNAM-$VERSION
+
+mkdir -p $PKG/install
+cat slack-desc > $PKG/install/slack-desc
+cat doinst.sh > $PKG/install/doinst.sh
+cd $PKG
+/sbin/makepkg -l y -c n $TMP/${PRGNAM}-${VERSION}-${ARCH}-${BUILD}${TAG}.txz
