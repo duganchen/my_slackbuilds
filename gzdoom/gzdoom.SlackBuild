@@ -4,17 +4,19 @@
 # essentially the same SlackBuild, except that it checks out the source
 # from git.
 
+# If you have a fmodapi 4.44.50 or later tarball, drop it in the SlackBuild
+# directory.  There are license issues with distributing it
+# (you're actually supposed to email the company for access). For now, there's a link here:
+# https://aur.archlinux.org/packages/fmodex/
+
 PRGNAM=gzdoom
 REPO=https://github.com/coelckers/${PRGNAM}.git
 
-XBRZ_VERSION=1.4
-XBRZ_PATCH=${PRGNAM}-g2.1.0_xBRZ-${XBRZ_VERSION}.diff
 BUILD=1
 TAG=dc
 
 TMP=${TMP:-/tmp}
 PKG=$TMP/package-$PRGNAM
-
 
 if [[ -z $ARCH ]]; then
 	case $( uname -m ) in
@@ -26,19 +28,19 @@ fi
 
 case $ARCH in
 	"i486")
-		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+		SLKCFLAGS="-O2 -march=i486 -mtune=i686 -Wl,-rpath=/usr/lib/gzdoom"
 		LIBDIRSUFFIX=""
 		;;
 	"i686")
-		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+		SLKCFLAGS="-O2 -march=i686 -mtune=i686 -Wl,-rpath=/usr/lib/gzdoom"
 		LIBDIRSUFFIX=""
 		;;
 	"x86_64")
-		SLKCFLAGS="-O2 -fPIC"
+		SLKCFLAGS="-O2 -fPIC -Wl,-rpath=/usr/lib64/gzdoom"
 		LIBDIRSUFFIX="64"
 		;;
 	*)
-	 	SLKCFLAGS="-O2"
+	 	SLKCFLAGS="-O2 -Wl,-rpath=/usr/lib/gzdoom"
 		LIBDIRSUFFIX=""
 		;;
 esac
@@ -50,44 +52,46 @@ CWD=$PWD
 read -r -d '' PARSER <<EOF
 # Get the latest version
 import json
+import re
 import sys
 
-releases = json.load(sys.stdin)
-for release in releases:
-	if release["tag_name"].startswith("g2"):
-		print release["tag_name"]
+for release in json.load(sys.stdin):
+	# This would be the latest non-pre release:
+	if re.match(r'^g\d.\d.\d$', release['name']):
+		print release['name']
 		break
 EOF
 
-VERSION=$(curl -H "Accept: application/vnd.github.v3.raw+json" https://api.github.com/repos/coelckers/gzdoom/releases | python -c $PARSER)
+VERSION=$(curl -H "Accept: application/vnd.github.v3.raw+json" https://api.github.com/repos/coelckers/gzdoom/tags | python -c $PARSER)
 
 # This needs to be moved down, as it causes the HEREDOC above to not work.
 set -e
 
 rm -rf $PKG
-rm -rf ${TMP}/${PRGNAM}
+rm -rf ${TMP}/${PRGNAM}-${VERSION}
+rm -f ${TMP}/${PRGNAM}-${VERSION}.tar.gz
 
 cd $TMP
 
-git clone https://github.com/coelckers/${PRGNAM}.git
+wget https://github.com/coelckers/${PRGNAM}/archive/${VERSION}/${PRGNAM}-${VERSION}.tar.gz
+tar xf ${PRGNAM}-${VERSION}.tar.gz
 
-cd $PRGNAM
-
-git checkout $VERSION
-
-patch -p1 --verbose < $CWD/$XBRZ_PATCH
+cd ${PRGNAM}-${VERSION}
 
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/${PRGNAM}.png
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/${PRGNAM}.desktop
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/slack-desc
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/doinst.sh
-wget http://downloads.sourceforge.net/project/xbrz/xBRZ/xBRZ_${XBRZ_VERSION}.zip
 
-mkdir -p src/gl/xBRZ
-cd src/gl/xBRZ
-unzip ../../../xBRZ_${XBRZ_VERSION}.zip
-patch -p1 < $CWD/xBRZ-1.4_cmath.diff
-cd $TMP/${PRGNAM}
+# If you have an FMOD Ex tarball in the SlackBuild directory, thern build it with fmod support.
+for fmodsrc in $CWD/fmodapi444??linux.tar.gz; do
+	if [[ -f $fmodsrc ]]; then
+		tar xf $fmodsrc
+		mv $(basename $fmodsrc .tar.gz) fmod
+		patch -p1 < $CWD/newer_fmod.diff
+		break
+	fi
+done
 
 chown -R root:root .
 find -L . \
@@ -96,14 +100,13 @@ find -L . \
 	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
 	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
+
 mkdir -p build
 cd build
 cmake \
 	-DCMAKE_C_FLAGS_RELEASE:STRING="$SLKCFLAGS -DSHARE_DIR=\\\"/usr/share/games/doom\\\"" \
 	-DCMAKE_CXX_FLAGS_RELEASE:STRING="$SLKCFLAGS -DSHARE_DIR=\\\"/usr/share/games/doom\\\"" \
 	-DCMAKE_INSTALL_PREFIX=/usr \
-	-DLIB_SUFFIX=${LIBDIRSUFFIX} \
-	-DMAN_INSTALL_DIR=/usr/man \
 	-DCMAKE_BUILD_TYPE=Release ..
 make
 mkdir -p $PKG/usr/bin $PKG/usr/share/games/doom
@@ -114,6 +117,7 @@ install -m0644 *.pk3 $PKG/usr/share/games/doom/
 if [[ -e liboutput_sdl.so ]]; then
 	mkdir -p $PKG/usr/lib$LIBDIRSUFFIX/$PRGNAM
 	install -m0755 -s liboutput_sdl.so $PKG/usr/lib$LIBDIRSUFFIX/$PRGNAM/liboutput_sdl.so
+	cp -a ../fmod/api/lib/libfmodex${LIBDIRSUFFIX}-4.44.??.so $PKG/usr/lib$LIBDIRSUFFIX/$PRGNAM/
 fi
 
 cd -
@@ -123,20 +127,18 @@ find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | gr
 
 # .desktop written for this SlackBuild
 mkdir -p $PKG/usr/share/applications
-cat $TMP/${PRGNAM}/${PRGNAM}.desktop > $PKG/usr/share/applications/${PRGNAM}.desktop
+cat $TMP/${PRGNAM}-${VERSION}/${PRGNAM}.desktop > $PKG/usr/share/applications/${PRGNAM}.desktop
 
 # PNG converted from Windows icon
 mkdir -p $PKG/usr/share/pixmaps
-cat $TMP/${PRGNAM}/${PRGNAM}.png > $PKG/usr/share/pixmaps/${PRGNAM}.png
+cat $TMP/${PRGNAM}-${VERSION}/${PRGNAM}.png > $PKG/usr/share/pixmaps/${PRGNAM}.png
 
 mkdir -p $PKG/usr/doc/${PRGNAM}-${VERSION}
 cp -a docs/* $PKG/usr/doc/${PRGNAM}-${VERSION}
 
-# Fix DOS CRLF line endings
-sed -i 's/\r//' $PKG/usr/doc/$PRGNAM-$VERSION/*
-
 mkdir -p $PKG/install
-cat $TMP/${PRGNAM}/slack-desc > $PKG/install/slack-desc
-cat $TMP/${PRGNAM}/doinst.sh > $PKG/install/doinst.sh
+cat $TMP/${PRGNAM}-${VERSION}/slack-desc > $PKG/install/slack-desc
+cat $TMP/${PRGNAM}-${VERSION}/doinst.sh > $PKG/install/doinst.sh
+
 cd $PKG
 /sbin/makepkg -l y -c n ${TMP}/${PRGNAM}-${VERSION}-${ARCH}-${BUILD}${TAG}.txz
