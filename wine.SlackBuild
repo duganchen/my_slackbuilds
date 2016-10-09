@@ -65,15 +65,20 @@ mkdir wine_src
 cd wine_src
 wget http://mirrors.ibiblio.org/wine/source/1.9/wine-$VERSION.tar.bz2
 wget https://github.com/wine-compholio/wine-staging/archive/${LATEST}/wine-staging-${LATEST}.tar.gz
+wget https://github.com/sarnex/wine-d3d9-patches/archive/wine-d3d9-$VERSION.tar.gz
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/master/system/wine/slack-desc
 
 tar xvf wine-${VERSION}.tar.bz2
 tar xvf wine-staging-${LATEST}.tar.gz
+tar xvf wine-d3d9-$VERSION.tar.gz
 
 cd wine-staging-$VERSION/patches
 ./patchinstall.sh --all DESTDIR=$TMP/wine_src/wine-$VERSION
 
 cd $TMP/wine_src/wine-$VERSION
+
+patch -p1 --verbose < ../wine-d3d9-patches-wine-d3d9-1.9.20/staging-helper.patch
+patch -p1 --verbose < ../wine-d3d9-patches-wine-d3d9-1.9.20/wine-d3d9.patch
 
 chown -R root:root .
 find -L . \
@@ -82,8 +87,9 @@ find -L . \
  \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
   -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
-autoreconf -i
+autoreconf -vif
 
+PKG_CONFIG_PATH=/usr/lib/pkgconfig \
 CFLAGS="$SLKCFLAGS" \
 CXXFLAGS="$SLKCFLAGS" \
 ./configure \
@@ -91,7 +97,8 @@ CXXFLAGS="$SLKCFLAGS" \
   --prefix=/usr \
   --mandir=/usr/man \
   --docdir=/usr/doc/wine-$VERSION \
-  --build=$ARCH-slackware-linux
+  --build=$ARCH-slackware-linux \
+  --with-d3dadapter
 
 make -j $JOBS
 make install DESTDIR=$PKG
