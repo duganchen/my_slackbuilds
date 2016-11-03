@@ -5,12 +5,12 @@
 # vte-ng is a patched version of vte3 and conflicts with it.
 # This is based on the SBo SlackBuild.
 
+# Requires pcre2 from SBo as a dependency.
+
 #!/bin/env zsh
 
-set -e
-
 PRGNAM=vte3
-REPO=vte-ng VERSION=${VERSION:-0.44.2.a}
+REPO=vte-ng VERSION=${VERSION:-0.46.0.a}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_SBo}
 
@@ -42,6 +42,18 @@ CWD=$(pwd)
 TMP=${TMP:-/tmp/SBo}
 PKG=$TMP/package-$PRGNAM
 OUTPUT=${OUTPUT:-/tmp}
+
+# Query GitHub for the latest version
+
+read -r -d '' PARSER <<EOF
+# Get the latest version
+import json
+import sys
+
+releases = json.load(sys.stdin)
+print releases[0]["name"]
+EOF
+
 
 set -e
 
