@@ -75,5 +75,8 @@ for m in $PKG/usr/man/**/*.[0-9]; do
 	gzip -9 $m
 done
 
+mkdir -p $PKG/usr/doc/xst-$VERSION
+cp -ar doc/[A-Z]* $PKG/usr/doc/xst-$VERSION
+
 cd $PKG
 /sbin/makepkg -l y -c n $TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.txz
