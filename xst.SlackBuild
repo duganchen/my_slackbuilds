@@ -5,6 +5,9 @@
 # https://www.reddit.com/user/Neeasade
 # Tnis package conflicts with st.
 
+# If you're using FISH, do this:
+# https://github.com/fish-shell/fish-shell/issues/3425#issuecomment-251714285
+
 set -e
 
 REPO=https://github.com/neeasade/xst.git
@@ -51,10 +54,6 @@ git clone $REPO
 cd $PRGNAM
 
 VERSION=$( git rev-parse --short HEAD )
-
-# We'll need this until this pull request is accepted:
-# https://github.com/neeasade/xst/pull/1
-patch < $CWD/terminfo.patch
 
 chown -R root:root .
 find -L . \
