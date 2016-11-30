@@ -68,6 +68,20 @@ CFLAGS=$SLKCFLAGS \
  CXXFLAGS=$SLKCFLAGS \
  make install DESTDIR=$PKG PREFIX=/usr MANPREFIX=/usr/man
 
+mkdir -p $PKG/usr/share/applications
+
+cat << EOF > $PKG/usr/share/applications/xst.desktop
+[Desktop Entry]
+Name=st
+Comment=Suckless Terminal
+GenericName=Terminal Emulator
+Exec=st
+Icon=utilities-terminal
+Type=Application
+Categories=GTK;System;TerminalEmulator;
+StartupNotify=true
+EOF
+
 find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
 	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
