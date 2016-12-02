@@ -72,8 +72,8 @@ mkdir -p $PKG/usr/share/applications
 
 cat << EOF > $PKG/usr/share/applications/xst.desktop
 [Desktop Entry]
-Name=st
-Comment=Suckless Terminal
+Name=Simple Terminal
+Comment=Use the command line
 GenericName=Terminal Emulator
 Exec=st
 Icon=utilities-terminal
