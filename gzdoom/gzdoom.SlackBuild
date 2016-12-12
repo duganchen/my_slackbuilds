@@ -84,7 +84,7 @@ wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/doinst.sh
 
 # If you have an FMOD Ex tarball in the SlackBuild directory, thern build it with fmod support.
-for fmodsrc in $CWD/fmodapi444??linux.tar.gz; do
+for fmodsrc in "$CWD/fmodapi444??linux.tar.gz"; do
 	if [[ -f $fmodsrc ]]; then
 		tar xf $fmodsrc
 		mv $(basename $fmodsrc .tar.gz) fmod
