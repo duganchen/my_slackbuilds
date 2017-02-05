@@ -16,7 +16,7 @@ cd $TMP
 git clone $UPSTREAM
 cd $REPO
 
-VERSION=SH$( git rev-parse --short HEAD )
+VERSION=$( git rev-parse --short HEAD )
 
 if [[ -z $ARCH ]]; then
 	case "$( uname -m )" in
