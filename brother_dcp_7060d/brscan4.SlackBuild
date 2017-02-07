@@ -4,12 +4,11 @@ set -e
 
 # For the Brother DCP 7060D's scanner driver.
 # I'm only interested in getting it working with 64-bit systems.
-# 24-bit Color Fast doesn't work. This is a well-known bug.
 
-VERSION=0.4.3
+VERSION=0.4.4
 PRGNAM=brscan4
 TMP=${TMP:-/tmp}
-BUILD=${BUILD:-3}
+BUILD=${BUILD:-1}
 TAG=${TAG:-dc}
 CWD=$PWD
 PKG=$TMP/package-$PRGNAM
