@@ -1,0 +1,71 @@
+#!/usr/bin/env zsh
+
+# This does not download the SlackBuild. Put the Vulkan SDK in the same directory
+# as the SlackBuild, then run it.
+
+# Download it here:
+# https://vulkan.lunarg.com/sdk/home#linux
+
+set -e
+
+VERSION=$(echo vulkansdk-*.run | cut -d - -f 4 | rev | cut -c 5- | rev)
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-vulkansdk
+BUILD=1
+TAG=dc
+
+if [[ -z $ARCH ]]; then
+	case $( uname -m ) in
+		i?86) ARCH=i486 ;;
+		arm*) ARCH=arm ;;
+		*) ARCH=$( uname -m ) ;;
+	esac
+fi
+
+case $ARCH in
+	"i486")
+		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"i686")
+		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"x86_64")
+		SLKCFLAGS="-O2 -fPIC"
+		LIBDIRSUFFIX="64"
+		;;
+	*)
+	 	SLKCFLAGS="-O2"
+		LIBDIRSUFFIX=""
+		;;
+esac
+
+WD=$PWD
+
+cd $TMP
+
+rm -rf $PKG
+rm -rf vulkansdk-linux-$ARCH-$VERSION.run VulkanSDK
+
+cp $WD/vulkansdk-linux-$ARCH-$VERSION.run .
+chmod +x vulkansdk-linux-$ARCH-$VERSION.run
+./vulkansdk-linux-$ARCH-$VERSION.run
+cd VulkanSDK
+
+chown -R root:root .
+find -L . \
+	\( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+	-o -perm 511 \) -exec chmod 755 {} \; -o \
+	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+mkdir -p $PKG/usr/lib$LIBDIRSUFFIX
+cp -r $VERSION/$ARCH/lib/* $PKG/usr/lib$LIBDIRSUFFIX
+mkdir -p $PKG/{usr/bin,etc,include,shared}
+cp -r $VERSION/$ARCH/bin/* $PKG/usr/bin
+cp -r $VERSION/$ARCH/etc/* $PKG/etc
+cp -r $VERSION/$ARCH/include/* $PKG/include
+
+cd $PKG
+/sbin/makepkg -l y -c n $TMP/vulkansdk-$VERSION-$ARCH-$BUILD$TAG.txz
