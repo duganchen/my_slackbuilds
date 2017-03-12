@@ -62,10 +62,10 @@ find -L . \
 
 mkdir -p $PKG/usr/lib$LIBDIRSUFFIX
 cp -r $VERSION/$ARCH/lib/* $PKG/usr/lib$LIBDIRSUFFIX
-mkdir -p $PKG/{usr/bin,etc,include,shared}
+mkdir -p $PKG/{usr/bin,etc,/usr/include,shared}
 cp -r $VERSION/$ARCH/bin/* $PKG/usr/bin
 cp -r $VERSION/$ARCH/etc/* $PKG/etc
-cp -r $VERSION/$ARCH/include/* $PKG/include
+cp -r $VERSION/$ARCH/include/* $PKG/usr/include
 
 cd $PKG
 /sbin/makepkg -l y -c n $TMP/vulkansdk-$VERSION-$ARCH-$BUILD$TAG.txz
