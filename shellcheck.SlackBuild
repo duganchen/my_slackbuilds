@@ -1,0 +1,47 @@
+#!/usr/bin/env zsh
+
+set -e
+
+UPSTREAM_VERSION=${UPSTREAM_VERSION:-0.4.4}
+DEBIAN_REVISION=${DEBIAN_REVISION:-4}
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-shellcheck
+BUILD=1
+TAG=dc
+
+
+if [[ -z $ARCH ]]; then
+	case $( uname -m ) in
+		i?86) ARCH=i486 ;;
+		arm*) ARCH=arm ;;
+		*) ARCH=$( uname -m ) ;;
+	esac
+fi
+
+case $ARCH in
+	"i486")
+		SRCURL=http://mirrors.kernel.org/ubuntu/pool/universe/s/shellcheck/shellcheck_${UPSTREAM_VERSION}-${DEBIAN_REVISION}_i386.deb
+		;;
+	"i686")
+		SRCURL=http://mirrors.kernel.org/ubuntu/pool/universe/s/shellcheck/shellcheck_${UPSTREAM_VERSION}-${DEBIAN_REVISION}_i386.deb
+		;;
+	"x86_64")
+		SRCURL=http://mirrors.kernel.org/ubuntu/pool/universe/s/shellcheck/shellcheck_${UPSTREAM_VERSION}-${DEBIAN_REVISION}_amd64.deb
+		;;
+	*)
+		echo Only x86 and x86_64 are supported. Sorry.
+		exit 1
+		;;
+esac
+
+rm -rf $TMP/shellcheck $PKG
+mkdir -p $TMP/shellcheck $PKG
+
+cd $TMP/shellcheck
+wget $SRCURL
+ar x $TMP/shellcheck/$(basename $SRCURL)
+cd $PKG
+tar xf $TMP/shellcheck/data.tar.xz
+mv usr/share/{doc,man} usr
+
+makepkg -l y -c n $TMP/shellcheck-${UPSTREAM_VERSION}-${ARCH}-${BUILD}${TAG}.txz
