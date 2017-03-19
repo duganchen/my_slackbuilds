@@ -1,0 +1,91 @@
+#!/bin/env zsh
+
+set -e
+
+PRGNAM=ppsspp
+USER=hrydgard
+REPO=https://github.com/${USER}/${PRGNAM}.git
+SBO_VERSION=14.2
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-$PRGNAM
+BUILD=1
+TAG=dc
+
+if [[ -z $ARCH ]]; then
+	case $( uname -m ) in
+		i?86) ARCH=i486 ;;
+		arm*) ARCH=arm ;;
+		*) ARCH=$( uname -m ) ;;
+	esac
+fi
+
+case $ARCH in
+	"i486")
+		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"i686")
+		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"x86_64")
+		SLKCFLAGS="-O2 -fPIC"
+		LIBDIRSUFFIX="64"
+		;;
+	*)
+	 	SLKCFLAGS="-O2"
+		LIBDIRSUFFIX=""
+		;;
+esac
+
+rm -rf $PKG
+rm -rf $TMP/$PRGNAM
+
+mkdir -p $PKG
+
+cd $TMP
+git clone $REPO
+cd $PRGNAM
+
+VERSION=$( git rev-parse --short HEAD )
+
+chown -R root:root .
+find -L . \
+	\( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+	-o -perm 511 \) -exec chmod 755 {} \; -o \
+	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+git submodule update --init --recursive
+
+mkdir build
+
+# Doing only an SDL build. The Qt builds don't seem to recognize
+# /usr/share/ppsspp/assets.
+
+cd build
+cmake \
+	-DCMAKE_C_FLAGS:STRING="$SLKCFLAGS" \
+	-DCMAKE_CXX_FLAGS:STRING="$SLKCFLAGS" \
+	-DCMAKE_INSTALL_PREFIX=/usr \
+	-DCMAKE_SKIP_RPATH=ON \
+	-DCMAKE_BUILD_TYPE=Release ..
+make
+
+cd ..
+
+mkdir -p $PKG/usr/{bin,share/{applications/desktop,icons,pixmaps,ppsspp}}
+cp build/PPSSPPSDL $PKG/usr/bin/ppsspp
+cp -r assets $PKG/usr/share/ppsspp
+cp -r icons/hicolor/* $PKG/usr/share/icons
+cp icons/icon-512.svg $PKG/usr/share/pixmaps/ppsspp.svg 
+
+wget -O $PKG/usr/share/applications/desktop/ppsspp.desktop \
+	'https://aur.archlinux.org/cgit/aur.git/plain/ppsspp.desktop?h=ppsspp-git'
+
+mkdir -p $PKG/install
+wget -O $PKG/install/slack-desc \
+	https://www.slackbuilds.org/slackbuilds/${SBO_VERSION}/games/ppsspp/slack-desc
+
+cd $PKG
+/sbin/makepkg -l y -c n $TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.txz
