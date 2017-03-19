@@ -47,6 +47,8 @@ cd $TMP
 git clone $REPO
 cd $PRGNAM
 
+git checkout qt_assets_dir
+
 VERSION=$( git rev-parse --short HEAD )
 
 chown -R root:root .
@@ -60,9 +62,6 @@ git submodule update --init --recursive
 
 mkdir build
 
-# Doing only an SDL build. The Qt builds don't seem to recognize
-# /usr/share/ppsspp/assets.
-
 cd build
 cmake \
 	-DCMAKE_C_FLAGS:STRING="$SLKCFLAGS" \
@@ -72,13 +71,29 @@ cmake \
 	-DCMAKE_BUILD_TYPE=Release ..
 make
 
+mkdir ../build_qt
+cd ../build_qt
+cmake \
+	-DCMAKE_C_FLAGS:STRING="$SLKCFLAGS" \
+	-DCMAKE_CXX_FLAGS:STRING="$SLKCFLAGS" \
+	-DCMAKE_INSTALL_PREFIX=/usr \
+	-DCMAKE_SKIP_RPATH=ON \
+	-DCMAKE_BUILD_TYPE=Release .. \
+	-DUSING_QT_UI=ON
+make
+
 cd ..
 
-mkdir -p $PKG/usr/{bin,share/{applications/desktop,icons,pixmaps,ppsspp}}
-cp build/PPSSPPSDL $PKG/usr/bin/ppsspp
+mkdir -p $PKG/usr/{bin,games,share/{applications/desktop,icons,pixmaps,ppsspp}}
+cp build/PPSSPPSDL $PKG/usr/games
+cp build_qt/PPSSPPQt $PKG/usr/games
 cp -r assets $PKG/usr/share/ppsspp
 cp -r icons/hicolor/* $PKG/usr/share/icons
 cp icons/icon-512.svg $PKG/usr/share/pixmaps/ppsspp.svg 
+
+( cd $PKG/usr/bin
+ln -s ../games/PPSSPPQt ppsspp
+)
 
 wget -O $PKG/usr/share/applications/desktop/ppsspp.desktop \
 	'https://aur.archlinux.org/cgit/aur.git/plain/ppsspp.desktop?h=ppsspp-git'
