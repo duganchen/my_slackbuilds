@@ -76,10 +76,13 @@ find -L . \
 	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
 	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
-mkdir -p $PKG/usr/{bin,man/man1}
+mkdir -p $PKG/{usr/{bin,man/man1,share/{fish/vendor_completions.d,zsh/site-functions}},etc/bash_completions.d}
 cp rg $PKG/usr/bin
 cp rg.1 $PKG/usr/man/man1
 gzip -9 $PKG/usr/man/man1/rg.1
+cp -a complete/rg.fish $PKG/usr/share/fish/vendor_completions.d
+cp -a complete/rg.bash-completion $PKG/etc/bash_completions.d
+cp -a complete/_rg $PKG/usr/share/zsh/site-functions
 
 mkdir -p $PKG/usr/doc/${PRGNAM}-${VERSION}
 cp -a [A-Z]* $PKG/usr/doc/${PRGNAM}-${VERSION}
