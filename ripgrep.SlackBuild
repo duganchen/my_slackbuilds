@@ -1,0 +1,74 @@
+#!/usr/bin/env zsh
+
+set -e
+
+TMP=${TMP:-/tmp}
+PRGNAM=ripgrep
+USER=BurntSushi
+PKG=$TMP/package-${PRGNAM}
+BUILD=1
+TAG=dc
+
+if [[ -z $ARCH ]]; then
+	case $( uname -m ) in
+		i?86) ARCH=i486 ;;
+		arm*) ARCH=arm ;;
+		*) ARCH=$( uname -m ) ;;
+	esac
+fi
+
+case $ARCH in
+	"i486")
+		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"i686")
+		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"x86_64")
+		SLKCFLAGS="-O2 -fPIC"
+		LIBDIRSUFFIX="64"
+		;;
+	*)
+	 	SLKCFLAGS="-O2"
+		LIBDIRSUFFIX=""
+		;;
+esac
+
+PARSER=$(cat <<-END
+import json
+import sys
+releases = json.load(sys.stdin)
+from pprint import pprint
+pprint(releases)
+END
+)
+
+HEADER="Accept: application/vnd.github.v3.raw+json"
+ENDPOINT="https://api.github.com/repos/${USER}/${PRGNAM}/releases"
+curl -H $HEADER $ENDPOINT | python -c $PARSER
+
+exit
+
+LATEST=$(curl -H "Accept: application/vnd.github.v3.raw+json" https://api.github.com/repos/wine-compholio/wine-staging/tags | python -c $PARSER)
+VERSION=${LATEST:1}
+
+wget https://github.com/wine-compholio/wine-staging/archive/${LATEST}/wine-staging-${LATEST}.tar.gz
+
+chown -R root:root .
+find -L . \
+	\( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+	-o -perm 511 \) -exec chmod 755 {} \; -o \
+	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+mkdir -p $PKG/usr/lib$LIBDIRSUFFIX
+cp -r $VERSION/$ARCH/lib/* $PKG/usr/lib$LIBDIRSUFFIX
+mkdir -p $PKG/{usr/bin,etc,/usr/include,shared}
+cp -r $VERSION/$ARCH/bin/* $PKG/usr/bin
+cp -r $VERSION/$ARCH/etc/* $PKG/etc
+cp -r $VERSION/$ARCH/include/* $PKG/usr/include
+
+cd $PKG
+/sbin/makepkg -l y -c n $TMP/vulkansdk-$VERSION-$ARCH-$BUILD$TAG.txz
