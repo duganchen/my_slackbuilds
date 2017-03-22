@@ -11,7 +11,10 @@ TAG=dc
 
 if [[ -z $ARCH ]]; then
 	case $( uname -m ) in
-		i?86) ARCH=i486 ;;
+
+		# Note that this is changed from the usual boilerplate.
+		# It's i686, not i486.
+		i?86) ARCH=i686 ;;
 		arm*) ARCH=arm ;;
 		*) ARCH=$( uname -m ) ;;
 	esac
@@ -36,25 +39,35 @@ case $ARCH in
 		;;
 esac
 
+HEADER="Accept: application/vnd.github.v3.raw+json"
 PARSER=$(cat <<-END
 import json
 import sys
 releases = json.load(sys.stdin)
-from pprint import pprint
-pprint(releases)
+for asset in releases[0]['assets']:
+    if 'linux' in asset['name'] and '$ARCH' in asset['name']:
+        print asset['browser_download_url']
+        break
 END
 )
-
-HEADER="Accept: application/vnd.github.v3.raw+json"
 ENDPOINT="https://api.github.com/repos/${USER}/${PRGNAM}/releases"
-curl -H $HEADER $ENDPOINT | python -c $PARSER
 
-exit
+# e.g. https://github.com/BurntSushi/ripgrep/releases/download/0.5.0/ripgrep-0.5.0-i686-unknown-linux-musl.tar.gz
+SRCURL=$(curl -H $HEADER $ENDPOINT | python -c $PARSER) 
 
-LATEST=$(curl -H "Accept: application/vnd.github.v3.raw+json" https://api.github.com/repos/wine-compholio/wine-staging/tags | python -c $PARSER)
-VERSION=${LATEST:1}
+# e.g. ripgrep-0.5.0-i686-unknown-linux-musl.tar.gz
+SRC=$(basename $SRCURL)
+VERSION=$(echo $SRC | cut -d '-' -f 2)
 
-wget https://github.com/wine-compholio/wine-staging/archive/${LATEST}/wine-staging-${LATEST}.tar.gz
+rm -rf $PKG $TMP/$SRC
+cd $TMP
+
+wget $SRCURL
+
+SRCDIR=$(tar --exclude="*/*" -tf $SRC)
+rm -rf $SRCDIR
+tar xf $SRC
+cd $SRCDIR
 
 chown -R root:root .
 find -L . \
@@ -63,12 +76,13 @@ find -L . \
 	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
 	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
-mkdir -p $PKG/usr/lib$LIBDIRSUFFIX
-cp -r $VERSION/$ARCH/lib/* $PKG/usr/lib$LIBDIRSUFFIX
-mkdir -p $PKG/{usr/bin,etc,/usr/include,shared}
-cp -r $VERSION/$ARCH/bin/* $PKG/usr/bin
-cp -r $VERSION/$ARCH/etc/* $PKG/etc
-cp -r $VERSION/$ARCH/include/* $PKG/usr/include
+mkdir -p $PKG/usr/{bin,man/man1}
+cp rg $PKG/usr/bin
+cp rg.1 $PKG/usr/man/man1
+gzip -9 $PKG/usr/man/man1/rg.1
+
+mkdir -p $PKG/usr/doc/${PRGNAM}-${VERSION}
+cp -a [A-Z]* $PKG/usr/doc/${PRGNAM}-${VERSION}
 
 cd $PKG
-/sbin/makepkg -l y -c n $TMP/vulkansdk-$VERSION-$ARCH-$BUILD$TAG.txz
+/sbin/makepkg -l y -c n $TMP/${PRGNAM}-${VERSION}-${ARCH}-${BUILD}${TAG}.txz
