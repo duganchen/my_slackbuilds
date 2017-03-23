@@ -47,8 +47,6 @@ cd $TMP
 git clone $REPO
 cd $PRGNAM
 
-git checkout qt_assets_dir
-
 VERSION=$( git rev-parse --short HEAD )
 
 chown -R root:root .
