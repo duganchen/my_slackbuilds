@@ -10,7 +10,6 @@ PKG="$TMP/package-$PRGNAM"
 BUILD=1
 TAG=dc
 
-# Automatically determine the architecture we're building on:
 if [[ -z $ARCH ]]; then
 	case "$( uname -m )" in
 		i?86) ARCH=i486 ;;
@@ -35,25 +34,17 @@ case $ARCH in
 esac
 
 rm -rf $PKG
-rm -rf $TMP/$SRC
+rm -rf $TMP/$PRGNAM
 
 mkdir -p "$PKG"
 
 CWD=$PWD
 
 cd $TMP
-git clone $REPO
-cd $SRC
-
-# This is the last revision that can build on Slackware 14.1.
-git checkout 6fb8ce5
+git clone $REPO $PRGNAM
+cd $PRGNAM
 
 VERSION=$( git rev-parse --short HEAD )
-
-# As of Feb 1, the master branch crashes on start becase of libusb
-# issues. Remove this patch when it's fixed.
-# See: https://forums.dolphin-emu.org/Thread-dolphin-4-0-5234-x64-and-newer-crashing-on-startup
-patch < $CWD/dolphin_no_libusb.patch
 
 chown -R root:root .
 find -L . \
@@ -64,21 +55,25 @@ find -L . \
 
 mkdir build
 cd build
-cmake -G "Unix Makefiles" \
+cmake .. \
  -DCMAKE_INSTALL_PREFIX:PATH=/usr \
  -Dbindir=/usr/games \
+ -Dmandir=/usr/man \
  -DLIB_INSTALL_DIR=lib${LIBDIRSUFFIX} \
- -DINSTALL_LIB_DIR=/usr/lib${LIBDIRSUFFIX} \
  -DCMAKE_C_FLAGS:STRING=$SLKCFLAGS \
  -DCMAKE_CXX_FLAGS:STRING=$SLKCFLAGS \
  -DCMAKE_BUILD_TYPE=Release ..
 
 make
 make install DESTDIR=$PKG
-cd $TMP/$SRC
+cd ..
 
  find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
  	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+for m in $PKG/usr/man/**/*.[0-9]; do
+	gzip -9 $m
+done
 
 # Credit to the SlackBuilds.org maintainer for this:
 
@@ -92,9 +87,5 @@ done
 rm -rf $PKG/usr/lib${LIBDIRSUFFIX}/libpolarssl.a
 find $PKG -type d -empty -delete
 
-rm -rf $TMP/$SRC
-
 cd $PKG
 /sbin/makepkg -l y -c n $TMP/$PRGNAM-$VERSION-$ARCH-${BUILD}${TAG}.txz
-
-rm -rf $PKG
