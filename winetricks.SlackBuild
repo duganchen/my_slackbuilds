@@ -1,5 +1,7 @@
 #!/bin/env zsh
 
+set -e
+
 # To prepare:
 # removepkg ttf-indic-fonts
 # cd /usr/share/fonts/TTF
@@ -22,7 +24,7 @@ cd $TMP
 git clone $REPO
 cd $PRGNAM
 
-VERSION=$(grep '^WINETRICKS_VERSION' < src/winetricks | sed 's/.*=//')
+VERSION=$(cat src/winetricks | grep WINETRICKS_VERSION= | sed 's/\(WINETRICKS_VERSION=\|-\)//g')
 
 chown -R root:root .
 find -L . \
@@ -33,10 +35,9 @@ find -L . \
 
 make install DESTDIR=$PKG
 mv $PKG/usr/share/man $PKG/usr
-rmdir $PKG/usr/share/man
 
 for man in $PKG/usr/man/*/*; do
-	zip -9 $man
+	gzip -9 $man
 done
 
 cd $PKG
