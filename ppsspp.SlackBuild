@@ -93,7 +93,7 @@ cp icons/icon-512.svg $PKG/usr/share/pixmaps/ppsspp.svg
 ln -s ../games/PPSSPPQt ppsspp
 )
 
-wget -O $PKG/usr/share/applications/desktop/ppsspp.desktop \
+wget -O $PKG/usr/share/applications/ppsspp.desktop \
 	'https://aur.archlinux.org/cgit/aur.git/plain/ppsspp.desktop?h=ppsspp-git'
 
 mkdir -p $PKG/install
