@@ -82,7 +82,7 @@ make
 
 cd ..
 
-mkdir -p $PKG/usr/{bin,games,share/{applications/desktop,icons/hicolor,pixmaps,ppsspp}}
+mkdir -p $PKG/usr/{games,share/{applications,icons/hicolor,pixmaps,ppsspp}}
 cp build/PPSSPPSDL $PKG/usr/games
 cp build_qt/PPSSPPQt $PKG/usr/games
 cp -r assets $PKG/usr/share/ppsspp
