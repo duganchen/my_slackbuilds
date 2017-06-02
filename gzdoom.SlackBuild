@@ -1,0 +1,102 @@
+#!/bin/env zsh
+
+set -e
+
+# Massive credit to the B.Watson for the SlackBuilds.org script. This is
+# essentially the same SlackBuild, except that it checks out the source
+# from git.
+
+PRGNAM=gzdoom
+USER=coelckers
+REPO=https://github.com/${USER}/${PRGNAM}.git
+
+BUILD=1
+TAG=dc
+
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-$PRGNAM
+
+if [[ -z $ARCH ]]; then
+	case $( uname -m ) in
+		i?86) ARCH=i486 ;;
+		arm*) ARCH=arm ;;
+		*) ARCH=$( uname -m ) ;;
+	esac
+fi
+
+CWD=$PWD
+
+HEADER="Accept: application/vnd.github.v3.raw+json"
+PARSER=$(cat <<-END
+# Get the latest version
+import json
+import re
+import sys
+
+for release in json.load(sys.stdin):
+    # This would be the latest non-pre release:
+    if re.match(r'^g\d.\d.\d$', release['name']):
+        print release['name']
+        break
+END
+)
+ENDPOINT="https://api.github.com/repos/${USER}/${PRGNAM}/tags"
+
+VERSION=$(curl -H $HEADER $ENDPOINT | python -c $PARSER)
+
+rm -rf $PKG
+rm -rf ${TMP}/${PRGNAM}-${VERSION}
+rm -f ${TMP}/${PRGNAM}-${VERSION}.tar.gz
+
+cd $TMP
+
+wget https://github.com/coelckers/${PRGNAM}/archive/${VERSION}/${PRGNAM}-${VERSION}.tar.gz
+tar xf ${PRGNAM}-${VERSION}.tar.gz
+
+cd ${PRGNAM}-${VERSION}
+
+wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/${PRGNAM}.png
+wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/${PRGNAM}.desktop
+wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/slack-desc
+wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/games/${PRGNAM}/doinst.sh
+
+chown -R root:root .
+find -L . \
+	\( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+	-o -perm 511 \) -exec chmod 755 {} \; -o \
+	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+
+mkdir -p build
+cd build
+cmake \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_BUILD_TYPE=Release ..
+make
+mkdir -p $PKG/usr/bin $PKG/usr/share/games/doom
+install -m0755 -s $PRGNAM $PKG/usr/bin/$PRGNAM
+install -m0644 *.pk3 $PKG/usr/share/games/doom/
+
+cd -
+
+find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+# .desktop written for this SlackBuild
+mkdir -p $PKG/usr/share/applications
+cat $TMP/${PRGNAM}-${VERSION}/${PRGNAM}.desktop > $PKG/usr/share/applications/${PRGNAM}.desktop
+
+# PNG converted from Windows icon
+mkdir -p $PKG/usr/share/pixmaps
+cat $TMP/${PRGNAM}-${VERSION}/${PRGNAM}.png > $PKG/usr/share/pixmaps/${PRGNAM}.png
+
+mkdir -p $PKG/usr/doc/${PRGNAM}-${VERSION}
+cp -a docs/* $PKG/usr/doc/${PRGNAM}-${VERSION}
+
+mkdir -p $PKG/install
+cat $TMP/${PRGNAM}-${VERSION}/slack-desc > $PKG/install/slack-desc
+cat $TMP/${PRGNAM}-${VERSION}/doinst.sh > $PKG/install/doinst.sh
+
+cd $PKG
+/sbin/makepkg -l y -c n ${TMP}/${PRGNAM}-${VERSION}-${ARCH}-${BUILD}${TAG}.txz
