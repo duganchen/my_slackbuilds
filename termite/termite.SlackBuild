@@ -1,0 +1,100 @@
+#!/bin/env bash
+
+set -e
+
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-termite
+BUILD=1
+TAG=dc
+
+if [[ -z $ARCH ]]; then
+	case $( uname -m ) in
+		i?86) ARCH=i486 ;;
+		arm*) ARCH=arm ;;
+		*) ARCH=$( uname -m ) ;;
+	esac
+fi
+
+case $ARCH in
+	"i486")
+		SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"i686")
+		SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+		LIBDIRSUFFIX=""
+		;;
+	"x86_64")
+		SLKCFLAGS="-O2 -fPIC"
+		LIBDIRSUFFIX="64"
+		;;
+	*)
+	 	SLKCFLAGS="-O2"
+		LIBDIRSUFFIX=""
+		;;
+esac
+
+rm -rf "$PKG"
+rm -rf "$TMP/vte-ng" "$TMP/termite"
+
+CWD=$(pwd)
+
+cd "$TMP"
+
+# First install vte-ng
+
+git clone https://github.com/thestinger/vte-ng.git
+cd vte-ng
+
+chown -R root:root .
+find -L . \
+	\( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+	-o -perm 511 \) -exec chmod 755 {} \; -o \
+	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+sh autogen.sh
+
+CFLAGS="$SLKCFLAGS" \
+	CXXFLAGS="$SLKCFLAGS" \
+	./configure \
+	--prefix="/vte-ng-build" \
+	--libdir="/usr/lib$LIBDIRSUFFIX/termite"
+
+make
+make install DESTDIR="$PKG"
+
+cd ..
+
+git clone --recursive https://github.com/thestinger/termite.git
+
+cd termite
+
+VERSION=$( git rev-parse --short HEAD )
+
+chown -R root:root .
+find -L . \
+	\( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+	-o -perm 511 \) -exec chmod 755 {} \; -o \
+	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+patch -p0 < "$CWD/Makefile.patch"
+
+CXXFLAGS="-I$PKG/vte-ng-build/include/vte-2.91 ${CXXFLAGS}" \
+	LDFLAGS="-L/$PKG/usr/lib$LIBDIRSUFFIX/termite -Wl,-rpath,/usr/lib$LIBDIRSUFFIX/termite" \
+	make
+make install DESTDIR="$PKG"
+
+rm -rf "$PKG/vte-ng-build"
+
+find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+find "$PKG/usr/man" -type f -exec gzip -9 {} \;
+for i in $( find "$PKG/usr/man" -type l )
+do ln -s "$( readlink "$i" ).gz" "$i.gz" ; rm "$i"
+done
+
+cd "$PKG"
+/sbin/makepkg -l y -c n "$TMP/termite-$VERSION-$ARCH-$BUILD$TAG.txz"
