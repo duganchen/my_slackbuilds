@@ -2,6 +2,8 @@
 
 set -e
 
+# This is needed to get thumbnail previews in KDE 5's Dolphin.
+
 PRGNAM=ffmpegthumbs
 TMP=${TMP:-/tmp}
 PKG=$TMP/package-$PRGNAM
