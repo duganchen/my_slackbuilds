@@ -20,7 +20,7 @@ if [ -z "$ARCH" ]; then
 fi
 
 rm -rf "$PKG"
-rm -rf $"TMP/calibre-installer-cache"
+rm -rf "$TMP/calibre-installer-cache"
 
 mkdir -p "$PKG/usr/share"
 mkdir -p "$PKG/usr/bin"
@@ -35,6 +35,9 @@ do
 	ln -sf "/opt/calibre/$(basename "$symlink")" .
 	)
 done
+
+mkdir -p "$PKG/install"
+wget -O "$PKG/install/slack-desc" https://slackbuilds.org/slackbuilds/14.2/office/calibre/slack-desc
 
 cd "$PKG"
 /sbin/makepkg -l y -c n "$TMP/calibre-$VERSION-$ARCH-${BUILD}.txz"
