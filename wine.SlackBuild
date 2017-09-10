@@ -67,6 +67,7 @@ cd wine_src
 wget http://mirrors.ibiblio.org/wine/source/${BRANCH}/wine-$VERSION.tar.xz
 wget https://github.com/wine-compholio/wine-staging/archive/${LATEST}/wine-staging-${LATEST}.tar.gz
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/master/system/wine/slack-desc
+wget https://raw.githubusercontent.com/Tetralet/wine-xinput/master/xinput_quigon.patch
 
 tar xvf wine-${VERSION}.tar.xz
 tar xvf wine-staging-${LATEST}.tar.gz
@@ -75,6 +76,8 @@ cd wine-staging-$VERSION/patches
 ./patchinstall.sh --all DESTDIR=$TMP/wine_src/wine-$VERSION
 
 cd $TMP/wine_src/wine-$VERSION
+
+patch -p1 --verbose < $TMP/wine_src/xinput_quigon.patch
 
 chown -R root:root .
 find -L . \
