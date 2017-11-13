@@ -1,8 +1,7 @@
 #!/bin/env zsh
 
-# Builds Wine with the wine-staging patches. On a 32-bit or 64-bit multilib
-# system, it will build a 32-bit Wine package. I have not tested it with a
-# pure 64-bit system.
+# Builds Wine with the wine-staging patches. This is meant for a multilib system, and will build a WOW64-enabled WINE (one "wine"
+# executable for both 32-bit and 64-bit apps).
 #
 # This is based on the SBo SlackBuild.
 
@@ -68,9 +67,6 @@ wget http://mirrors.ibiblio.org/wine/source/${BRANCH}/wine-$VERSION.tar.xz
 wget https://github.com/wine-compholio/wine-staging/archive/${LATEST}/wine-staging-${LATEST}.tar.gz
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/master/system/wine/slack-desc
 
-# If you want the wine-xinput patch.
-# wget https://raw.githubusercontent.com/Tetralet/wine-xinput/master/xinput_quigon.patch
-
 tar xvf wine-${VERSION}.tar.xz
 tar xvf wine-staging-${LATEST}.tar.gz
 
@@ -78,9 +74,6 @@ cd wine-staging-$VERSION/patches
 ./patchinstall.sh --all DESTDIR=$TMP/wine_src/wine-$VERSION
 
 cd $TMP/wine_src/wine-$VERSION
-
-# Again: the wine-xinput patch
-# patch -p1 --verbose < $TMP/wine_src/xinput_quigon.patch
 
 chown -R root:root .
 find -L . \
@@ -91,17 +84,30 @@ find -L . \
 
 autoreconf -i
 
-CFLAGS="$SLKCFLAGS" \
-CXXFLAGS="$SLKCFLAGS" \
-./configure \
-  --with-xattr \
+mkdir $TMP/wine_src/win64-build
+cd $TMP/wine_src/win64-build
+$TMP/wine_src/wine-$VERSION/configure \
+  --enable-win64 \
+  --prefix=/usr \
+  --mandir=/usr/man \
+  --docdir=/usr/doc/wine-$VERSION \
+  --build=$ARCH-slackware-linux
+make -j $JOBS
+
+mkdir -p $TMP/wine_src/win32-build
+cd $TMP/wine_src/win32-build
+$TMP/wine_src/wine-$VERSION/configure \
+  --with-wine64=../win64-build \
   --prefix=/usr \
   --mandir=/usr/man \
   --docdir=/usr/doc/wine-$VERSION \
   --build=$ARCH-slackware-linux
 
 make -j $JOBS
-make install DESTDIR=$PKG
+make install DESTDIR=$PKG -j $JOBS
+
+cd ../win64-build
+make install DESTDIR=$PKG -j $JOBS
 
 find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
   | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
@@ -110,7 +116,7 @@ find $PKG/usr/man -type f -exec gzip -9 {} \;
 for i in $( find $PKG/usr/man -type l ) ; do ln -s $( readlink $i ).gz $i.gz ; rm $i ; done
 
 mkdir -p $PKG/usr/doc/wine-$VERSION
-cp -a [[:upper:]][[:upper:]]* $PKG/usr/doc/wine-$VERSION
+cp -a $TMP/wine_src/wine-$VERSION/[[:upper:]][[:upper:]]* $PKG/usr/doc/wine-$VERSION
 
 mkdir -p $PKG/install
 cat $TMP/wine_src/slack-desc > $PKG/install/slack-desc
