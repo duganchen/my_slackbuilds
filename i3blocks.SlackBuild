@@ -11,6 +11,8 @@ TMP=${TMP:-/tmp}
 PKG="$TMP/package-$PRGNAM"
 BUILD=1
 TAG=dc
+SBO_VERSION=${SBO_VERSION:-14.2}
+SBO="https://slackbuilds.org/slackbuilds/$SBO_VERSION/desktop/i3blocks"
 
 if [[ -z "$ARCH" ]]; then
 	case $( uname -m ) in
@@ -42,9 +44,12 @@ cd "$TMP"
 git clone $REPO
 cd "$PRGNAM"
 
+wget "$SBO/doinst.sh"
+wget "$SBO/slack-desc"
+
 VERSION=$( git rev-parse --short HEAD )
 
-#chown -R root:root .
+chown -R root:root .
 find -L . \
 	\( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
 	-o -perm 511 \) -exec chmod 755 {} \; -o \
@@ -57,10 +62,27 @@ CFLAGS=$SLKCFLAGS \
  PREFIX=/usr install \
  DESTDIR="$PKG"
 
+make \
+	DESTDIR="$PKG" \
+	PREFIX=/usr \
+	DATAROOTDIR=/usr \
+	install-man
+
 find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
 	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
+find "$PKG/usr/man" -type f -exec gzip -9 {} \;
+for i in $( find $PKG/usr/man -type l ) ; do ln -s $( readlink $i ).gz $i.gz ; rm $i ; done
+
+mv "$PKG/etc/i3blocks.conf" "$PKG/etc/i3blocks.conf.new"
+
+DOC="$PKG/usr/doc/i3blocks-$VERSION"
+mkdir -p "$DOC"
+cp -r CHANGELOG.md COPYING README.md "$DOC"
+
+mkdir -p "$PKG/install"
+cat slack-desc > "$PKG/install/slack-desc"
+cat doinst.sh > "$PKG/install/doinst.sh"
+
 cd "$PKG"
 /sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.txz"
-
-
