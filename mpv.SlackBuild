@@ -1,1 +1,43 @@
 #!/usr/bin/env bash
+
+set -e
+
+TMP=${TMP:-/tmp}
+PKG="$TMP/package-mpv"
+BUILD=${BUILD:-1}
+TAG=${TAG:-dc}
+SBO="${SBO:-https://raw.githubusercontent.com/Ponce/slackbuilds/master/multimedia/mpv}"
+
+cd "$TMP"
+rm -rf mpv-build package-mpv
+git clone https://github.com/mpv-player/mpv-build
+cd mpv-build
+./use-mpv-release
+cat << EOF > mpv_options
+--prefix=/usr
+--confdir=/etc/mpv
+--mandir=/usr/man
+--docdir=/usr/doc/mpv
+EOF
+./rebuild -j"$(nproc)"
+cd mpv
+VERSION="$(git describe --tags | cut -c 2-)"
+./waf --destdir="$PKG" install
+
+find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" \
+  | grep ELF | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+gzip -9 "$PKG/usr/man/man1/mpv.1"
+ETC="$PKG/etc/mpv"
+mv "$ETC/encoding-profiles.conf" "$ETC/encoding-profiles.conf.new"
+DOC="$PKG/usr/doc"
+DOCDIR="$DOC/mpv-$VERSION"
+mv "$DOC/mpv" "$DOCDIR"
+cp -a DOCS "$DOCDIR"
+INSTALL="$PKG/install"
+mkdir "$INSTALL"
+wget -O "$INSTALL/doinst.sh" "$SBO/doinst.sh"
+wget -O "$INSTALL/slack-desc" "$SBO/slack-desc"
+cd "$PKG"
+ARCH="$(uname -r)"
+/sbin/makepkg -l y -c n "$TMP/mpv-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}"
