@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+set -e
+
+PRGNAM="dolphin-emu"
+SRC="dolphin"
+REPO="https://github.com/${PRGNAM}/${SRC}.git"
+TMP="${TMP:-/tmp}"
+PKG="$TMP/package-$PRGNAM"
+BUILD=1
+TAG=dc
+SBO="${SBO:-https://raw.githubusercontent.com/Ponce/slackbuilds/master/games/dolphin-emu}"
+
+if [[ -z $ARCH ]]; then
+  case "$( uname -m )" in
+    i?86) ARCH=i486 ;;
+    arm*) ARCH=arm ;;
+    *) ARCH="$( uname -m )" ;;
+  esac
+fi
+
+case $ARCH in
+  "i486")
+    SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+    LIBDIRSUFFIX=""
+    ;;
+  "i686")
+    SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+    LIBDIRSUFFIX=""
+    ;;
+  *)
+    SLKCFLAGS="-O2"
+    LIBDIRSUFFIX=""
+    ;;
+esac
+
+rm -rf "$PKG"
+rm -rf "${TMP:?}/${PRGNAM:?}"
+
+mkdir -p "$PKG"
+
+cd "$TMP"
+git clone --recursive $REPO $PRGNAM
+cd $PRGNAM
+
+VERSION=$( git rev-parse --short HEAD )
+
+chown -R root:root .
+find -L . \
+  \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+  -o -perm 511 \) -exec chmod 755 {} \; -o \
+  \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+  -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+mkdir build
+cd build
+cmake .. \
+ -DCMAKE_INSTALL_PREFIX:PATH=/usr \
+ -Dbindir=/usr/games \
+ -Dmandir=/usr/man \
+ -DLIB_INSTALL_DIR=lib${LIBDIRSUFFIX} \
+ -DCMAKE_C_FLAGS:STRING=$SLKCFLAGS \
+ -DCMAKE_CXX_FLAGS:STRING=$SLKCFLAGS \
+ -DCMAKE_BUILD_TYPE=Release ..
+
+make -j "$(nproc)"
+make install DESTDIR="$PKG"
+cd ..
+
+find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+  | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+for m in $PKG/usr/man/**/*.[0-9]; do
+  gzip -9 "$m"
+done
+
+# Credit to the SlackBuilds.org maintainer for this:
+for i in 16 32 48 64 128; do
+  convert Installer/Dolphin.ico -resize "${i}x${i}!" ${PRGNAM}-${i}.png
+  install -D -m 0644 ${PRGNAM}-${i}-3.png \
+    "$PKG/usr/share/icons/hicolor/${i}x${i}/apps/$PRGNAM.png"
+done
+
+INSTALL="$PKG/install"
+mkdir -p "$INSTALL"
+echo wget -O "$INSTALL/doinst.sh" "$SBO/doinst.sh"
+wget -O "$INSTALL/slack-desc" "$SBO/slack-desc"
+
+cd "$PKG"
+/sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-$ARCH-${BUILD}${TAG}.txz"
