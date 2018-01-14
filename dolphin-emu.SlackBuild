@@ -84,4 +84,4 @@ mkdir -p "$PKG/install"
 wget -O "$PKG/install/slack-desc" "$SBO/slack-desc"
 
 cd "$PKG"
-/sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-$ARCH-${BUILD}${TAG}.txz"
+/sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-$ARCH-${BUILD}${TAG}.${PKGTYPE:-tgz}"
