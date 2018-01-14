@@ -80,10 +80,8 @@ for i in 16 32 48 64 128; do
     "$PKG/usr/share/icons/hicolor/${i}x${i}/apps/$PRGNAM.png"
 done
 
-INSTALL="$PKG/install"
-mkdir -p "$INSTALL"
-echo wget -O "$INSTALL/doinst.sh" "$SBO/doinst.sh"
-wget -O "$INSTALL/slack-desc" "$SBO/slack-desc"
+mkdir -p "$PKG/install"
+wget -O "$PKG/install/slack-desc" "$SBO/slack-desc"
 
 cd "$PKG"
 /sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-$ARCH-${BUILD}${TAG}.txz"
