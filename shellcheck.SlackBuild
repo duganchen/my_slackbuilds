@@ -1,17 +1,9 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 set -e
 
-# Homepage here:
-# https://packages.debian.org/sid/shellcheck
-
-# Sample URLS:
-# http://ftp.ca.debian.org/debian/pool/main/s/shellcheck/shellcheck_0.4.6-1_amd64.deb
-# http://ftp.ca.debian.org/debian/pool/main/s/shellcheck/shellcheck_0.4.6-1_i386.deb
-
-UPSTREAM_VERSION=${UPSTREAM_VERSION:-0.4.6}
-DEBIAN_REVISION=${DEBIAN_REVISION:-1}
-MIRROR=${MIRROR:-http://ftp.ca.debian.org}
+UPSTREAM_VERSION=${UPSTREAM_VERSION:-0.4.4}
+DEBIAN_REVISION=${DEBIAN_REVISION:-4}
 TMP=${TMP:-/tmp}
 PKG=$TMP/package-shellcheck
 BUILD=1
@@ -28,13 +20,13 @@ fi
 
 case $ARCH in
 	"i486")
-		SRCURL="$MIRROR/debian/pool/main/s/shellcheck/shellcheck_${UPSTREAM_VERSION}-${DEBIAN_REVISION}_i386.deb"
+		SRCURL=http://mirrors.kernel.org/ubuntu/pool/universe/s/shellcheck/shellcheck_${UPSTREAM_VERSION}-${DEBIAN_REVISION}_i386.deb
 		;;
 	"i686")
-		SRCURL="$MIRROR/debian/pool/main/s/shellcheck/shellcheck_${UPSTREAM_VERSION}-${DEBIAN_REVISION}_i386.deb"
+		SRCURL=http://mirrors.kernel.org/ubuntu/pool/universe/s/shellcheck/shellcheck_${UPSTREAM_VERSION}-${DEBIAN_REVISION}_i386.deb
 		;;
 	"x86_64")
-		SRCURL="$MIRROR/debian/pool/main/s/shellcheck/shellcheck_${UPSTREAM_VERSION}-${DEBIAN_REVISION}_amd64.deb"
+		SRCURL=http://mirrors.kernel.org/ubuntu/pool/universe/s/shellcheck/shellcheck_${UPSTREAM_VERSION}-${DEBIAN_REVISION}_amd64.deb
 		;;
 	*)
 		echo Only x86 and x86_64 are supported. Sorry.
@@ -52,4 +44,4 @@ cd $PKG
 tar xf $TMP/shellcheck/data.tar.xz
 mv usr/share/{doc,man} usr
 
-/sbin/makepkg -l y -c n $TMP/shellcheck-${UPSTREAM_VERSION}-${ARCH}-${BUILD}${TAG}.txz
+makepkg -l y -c n $TMP/shellcheck-${UPSTREAM_VERSION}-${ARCH}-${BUILD}${TAG}.txz

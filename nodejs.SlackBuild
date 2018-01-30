@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+# This builds a nodejs binary package. Have it in the same directory
+# as the SlackBuild when you run it.
+
+# Sample fileame:
+# node-v8.9.4-linux-x64.tar.xz
+
+TAG=1dc
+
+if [[ -z $ARCH ]]; then
+	case $( uname -m ) in
+		i?86) ARCH=i486 ;;
+		arm*) ARCH=arm ;;
+		*) ARCH=$( uname -m ) ;;
+	esac
+fi
+
+TARBALL=$(echo node-v*-linux-*.tar.xz)
+VERSION=$(echo $TARBALL | cut -d v -f 2 | cut -d - -f 1)
+TMP=${TMP:-/tmp}
+rm -rf $TMP/package-nodejs
+mkdir -p $TMP/package-nodejs
+CWD=$(pwd)
+cd $TMP/package-nodejs
+tar xf $CWD/$TARBALL
+mv $(basename $TARBALL .tar.xz) usr
+mv usr/share/{doc,man} usr
+find usr -type f -maxdepth 1 -exec mv {} usr/doc/node \;
+gzip -9 usr/man/man1/node.1
+/sbin/makepkg -l y -c n /tmp/nodejs-$VERSION-$ARCH-$TAG.tgz
