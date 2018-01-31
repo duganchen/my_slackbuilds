@@ -9,6 +9,8 @@ set -e
 # http://ftp.ca.debian.org/debian/pool/main/s/shellcheck/shellcheck_0.4.6-1_amd64.deb
 # http://ftp.ca.debian.org/debian/pool/main/s/shellcheck/shellcheck_0.4.6-1_i386.deb
 
+# Update UPSTREAM_VERSION as needed.
+
 UPSTREAM_VERSION=${UPSTREAM_VERSION:-0.4.6}
 DEBIAN_REVISION=${DEBIAN_REVISION:-1}
 MIRROR=${MIRROR:-http://ftp.ca.debian.org}
@@ -42,14 +44,14 @@ case $ARCH in
 		;;
 esac
 
-rm -rf $TMP/shellcheck $PKG
-mkdir -p $TMP/shellcheck $PKG
+rm -rf "$TMP/shellcheck" "$PKG"
+mkdir -p "$TMP/shellcheck" "$PKG"
 
-cd $TMP/shellcheck
-wget $SRCURL
-ar x $TMP/shellcheck/$(basename $SRCURL)
-cd $PKG
-tar xf $TMP/shellcheck/data.tar.xz
-mv usr/share/{doc,man} usr
+cd "$TMP/shellcheck"
+wget "$SRCURL"
+ar x "$TMP/shellcheck/$(basename "$SRCURL")"
+cd "$PKG"
+tar xf "$TMP/shellcheck/data.tar.xz"
+mv "usr/share/{doc,man}" usr
 
-/sbin/makepkg -l y -c n $TMP/shellcheck-${UPSTREAM_VERSION}-${ARCH}-${BUILD}${TAG}.txz
+/sbin/makepkg -l y -c n "$TMP/shellcheck-${UPSTREAM_VERSION}-${ARCH}-${BUILD}${TAG}.txz"
