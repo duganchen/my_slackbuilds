@@ -52,6 +52,6 @@ wget "$SRCURL"
 ar x "$TMP/shellcheck/$(basename "$SRCURL")"
 cd "$PKG"
 tar xf "$TMP/shellcheck/data.tar.xz"
-mv "usr/share/{doc,man}" usr
+mv usr/share/{doc,man} usr
 
 /sbin/makepkg -l y -c n "$TMP/shellcheck-${UPSTREAM_VERSION}-${ARCH}-${BUILD}${TAG}.txz"
