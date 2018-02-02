@@ -1,15 +1,20 @@
-#!/bin/env zsh
+#!/bin/env bash
 
 # Builds Wine with the wine-staging patches. This is meant for a multilib system, and will build a WOW64-enabled WINE (one "wine"
 # executable for both 32-bit and 64-bit apps).
 #
 # This is based on the SBo SlackBuild.
 
+set -e
+
+# Change this as needed.
+VERSION=3.0
+
 BUILD=${BUILD:-1}
 TAG=${TAG:-dc}
 TMP=${TMP:-/tmp}
 PKG=$TMP/package-wine
-BRANCH=2.x
+BRANCH=3.0
 
 if [[ -z $ARCH ]]; then
 	case $( uname -m ) in
@@ -38,25 +43,8 @@ case $ARCH in
 		;;
 esac
 
-# Query GitHub for the latest version
-
-read -r -d '' PARSER <<EOF
-# Get the latest version
-import json
-import sys
-
-releases = json.load(sys.stdin)
-print releases[0]["name"]
-EOF
-
-# This needs to be moved down, as it causes the HEREDOC above to not work.
-set -e
-
-LATEST=$(curl -H "Accept: application/vnd.github.v3.raw+json" https://api.github.com/repos/wine-compholio/wine-staging/tags | python -c $PARSER)
-VERSION=${LATEST:1}
-
 # I believe the rule is one more than the number of cores?
-((JOBS = $( cat /proc/cpuinfo  | grep -c processor ) + 1))
+((JOBS = $( nproc ) + 1))
 
 rm -rf $PKG $TMP/wine_src
 cd $TMP
@@ -64,14 +52,9 @@ cd $TMP
 mkdir wine_src
 cd wine_src
 wget http://mirrors.ibiblio.org/wine/source/${BRANCH}/wine-$VERSION.tar.xz
-wget https://github.com/wine-compholio/wine-staging/archive/${LATEST}/wine-staging-${LATEST}.tar.gz
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/master/system/wine/slack-desc
 
 tar xvf wine-${VERSION}.tar.xz
-tar xvf wine-staging-${LATEST}.tar.gz
-
-cd wine-staging-$VERSION/patches
-./patchinstall.sh --all DESTDIR=$TMP/wine_src/wine-$VERSION
 
 cd $TMP/wine_src/wine-$VERSION
 
@@ -81,8 +64,6 @@ find -L . \
   -o -perm 511 \) -exec chmod 755 {} \; -o \
  \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
   -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
-
-autoreconf -i
 
 mkdir $TMP/wine_src/win64-build
 cd $TMP/wine_src/win64-build
