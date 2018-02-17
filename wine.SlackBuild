@@ -8,7 +8,7 @@
 set -e
 
 # Change this as needed.
-VERSION=3.1
+VERSION=3.2
 
 BUILD=${BUILD:-1}
 TAG=${TAG:-dc}
