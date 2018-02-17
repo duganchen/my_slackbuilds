@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+set -e
+
+TMP=${TMP:-/tmp}
+PKG="$TMP/package-alacritty"
+BUILD=${BUILD:-1}
+TAG=${TAG:-dc}
+
+if [[ -z $ARCH ]]; then
+  case $( uname -m ) in
+    i?86) ARCH=i486 ;;
+    arm*) ARCH=arm ;;
+    *) ARCH=$( uname -m ) ;;
+  esac
+fi
+
+cd "$TMP"
+rm -rf alacritty "$PKG:?"
+git clone https://github.com/jwilm/alacritty.git
+cd alacritty
+VERSION="$(git rev-parse --short HEAD)"
+cargo build --release
+mkdir -p "$PKG"/usr/{bin,doc/alacritty,share/{alacritty,applications}}
+cp -a target/release/alacritty "$PKG/usr/bin"
+cp -a Alacritty.desktop "$PKG/usr/share/applications"
+cp -a docs/* README.md alacritty.yml "$PKG/usr/doc/alacritty"
+cp -a alacritty.info "$PKG/usr/share/alacritty"
+cd "$PKG"
+makepkg -l y -c n "$TMP/alacritty-$VERSION-$ARCH-$TAG.${PKGTYPE:-tgz}"
