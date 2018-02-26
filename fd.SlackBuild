@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+set -e
+
+BUILD=${BUILD:-1}
+TAG=${TAG:-dc}
+TMP=${TMP:-/tmp}
+
+PKG=$TMP/package-fd
+
+# This works as of 6.3.0. Tested on 64-bit, *should* work on
+# 32-bit. Note the need for Python 3, which is in slackware-current.
+URL=$(python3 - << EOF
+import requests
+import os
+url = 'https://api.github.com/repos/sharkdp/fd/releases'
+headers = {'Accept': 'application/vnd.github.v3+json'}
+url, = (asset['browser_download_url'] for asset in
+        requests.get(url, headers=headers).json()[0]['assets']
+        if asset['content_type'] == 'application/gzip'
+        and os.uname().machine in asset['name']
+        and 'darwin' not in asset['name']
+        and 'musl' not in asset['name'])
+print(url)
+EOF
+)
+
+ARCHIVE=$(basename "$URL")
+VERSION=$(echo "$ARCHIVE" | cut -d v -f 2 | cut -d - -f 1)
+ARCH=$(echo "$ARCHIVE" | cut -d - -f 3)
+ARCHIVE_ROOT=$(tar -tf fd-v6.3.0-x86_64-unknown-linux-gnu.tar.gz  | head -n 1 | cut -f 1 -d "/")
+
+cd "$TMP"
+rm -rf "$ARCHIVE" "$PKG"
+wget --content-disposition "$URL"
+tar xf fd-v"$VERSION"-"$ARCH"-*.tar.*
+mkdir -p "$PKG/usr/bin"
+mkdir -p "$PKG/usr/doc/fd-$VERSION"
+mkdir -p "$PKG/usr/man/man1"
+mkdir -p "$PKG/usr/share/zsh/site-functions"
+mkdir -p "$PKG/usr/share/bash-completion/completions"
+mkdir -p "$PKG/usr/share/fish/completions"
+cd "$ARCHIVE_ROOT"
+cp -a LICENSE-APACHE LICENSE-MIT README.md "$PKG/usr/doc/fd-$VERSION"
+cp fd "$PKG/usr/bin"
+cp fd.1 "$PKG/usr/man/man1"
+gzip -9 "$PKG/usr/man/man1/fd.1"
+cp autocomplete/fd.bash-completion "$PKG/usr/share/bash-completion/completions/fd"
+cp autocomplete/_fd "$PKG/usr/share/zsh/site-functions"
+cp autocomplete/fd.fish "$PKG/usr/share/fish/completions"
+cd "$PKG"
+/sbin/makepkg -l y -c n "$TMP/fd-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}"
