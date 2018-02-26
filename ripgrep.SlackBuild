@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+set -e
+
+PRGNAM=ripgrep
+BUILD=${BUILD:-1}
+TAG=${TAG:-dc}
+TMP=${TMP:-/tmp}
+
+PKG=$TMP/package-$PRGNAM
+
+URL=$(python3 - << EOF
+import requests
+import os
+url = 'https://api.github.com/repos/BurntSushi/ripgrep/releases'
+headers = {'Accept': 'application/vnd.github.v3+json'}
+import pprint
+url, = (asset['browser_download_url'] for asset in
+        requests.get(url, headers=headers).json()[0]['assets']
+        if asset['content_type'] == 'application/gzip'
+        and os.uname().machine in asset['name']
+        and 'darwin' not in asset['name'])
+print(url)
+EOF
+)
+
+ARCHIVE=$(basename "$URL")
+ARCH=$(echo "$ARCHIVE" | cut -d - -f 3)
+VERSION=$(echo "$ARCHIVE" | cut -d - -f 2)
+SRC="$PRGNAM-$VERSION-$ARCH-unknown-linux-musl"
+
+cd "$TMP"
+rm -rf "$ARCHIVE" "$PKG" "$SRC"
+wget --content-disposition "$URL"
+tar xf "$SRC".tar.*
+mkdir -p "$PKG/usr/bin"
+mkdir -p "$PKG/usr/doc/$PRGNAM-$VERSION"
+mkdir -p "$PKG/usr/man/man1"
+mkdir -p "$PKG/usr/share/zsh/site-functions"
+mkdir -p "$PKG/usr/share/bash-completion/completions"
+mkdir -p "$PKG/usr/share/fish/completions"
+cd "$SRC"
+cp -a COPYING LICENSE-MIT UNLICENSE *.md doc/*.md "$PKG/usr/doc/$PRGNAM-$VERSION"
+cp rg "$PKG/usr/bin"
+cp doc/rg.1 "$PKG/usr/man/man1"
+gzip -9 "$PKG/usr/man/man1/rg.1"
+cp complete/rg.bash "$PKG/usr/share/bash-completion/completions/rg"
+cp complete/_rg "$PKG/usr/share/zsh/site-functions"
+cp complete/rg.fish "$PKG/usr/share/fish/completions"
+cd "$PKG"
+/sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}"
