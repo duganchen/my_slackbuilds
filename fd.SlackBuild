@@ -28,11 +28,11 @@ EOF
 ARCHIVE=$(basename "$URL")
 VERSION=$(echo "$ARCHIVE" | cut -d v -f 2 | cut -d - -f 1)
 ARCH=$(echo "$ARCHIVE" | cut -d - -f 3)
-ARCHIVE_ROOT=$(tar -tf fd-v6.3.0-x86_64-unknown-linux-gnu.tar.gz  | head -n 1 | cut -f 1 -d "/")
 
 cd "$TMP"
 rm -rf "$ARCHIVE" "$PKG"
 wget --content-disposition "$URL"
+ARCHIVE_ROOT=$(tar -tf fd-v6.3.0-x86_64-unknown-linux-gnu.tar.gz  | head -n 1 | cut -f 1 -d "/")
 tar xf fd-v"$VERSION"-"$ARCH"-*.tar.*
 mkdir -p "$PKG/usr/bin"
 mkdir -p "$PKG/usr/doc/fd-$VERSION"
