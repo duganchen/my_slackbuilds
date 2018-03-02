@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -e
+
+BUILD=${BUILD:-1}
+TAG=${TAG:-dc}
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-polybar
+
+if [[ -z $ARCH ]]; then
+  case $( uname -m ) in
+    i?86) ARCH=i486 ;;
+    arm*) ARCH=arm ;;
+    *) ARCH=$( uname -m ) ;;
+  esac
+fi
+
+cd "$TMP"
+rm -rf "$PKG" polybar
+git clone https://github.com/jaagr/polybar.git
+cd polybar
+# As of last revision, this was 3.1.0-67-g692e6d9
+GIT_TAG=$(git describe --tags)
+VERSION=$(echo "$GIT_TAG" | cut -d - -f 1)
+git checkout "$GIT_TAG"
+git submodule init
+git submodule update
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DMAN_INSTALL_DIR=/usr/man
+make install DESTDIR="$PKG"
+cd "$PKG"
+mv usr/share/{doc,man} usr
+gzip -9 usr/man/man1/polybar.1
+/sbin/makepkg -l y -c n "$TMP/polybar-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}"
