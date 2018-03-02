@@ -9,17 +9,17 @@ TMP=${TMP:-/tmp}
 
 PKG=$TMP/package-$PRGNAM
 
-URL=$(python3 - << EOF
-import requests
+URL=$(
+python3 - << EOF
 import os
+from pathlib import PurePosixPath
+import requests
 url = 'https://api.github.com/repos/BurntSushi/ripgrep/releases'
 headers = {'Accept': 'application/vnd.github.v3+json'}
-import pprint
-url, = (asset['browser_download_url'] for asset in
-        requests.get(url, headers=headers).json()[0]['assets']
-        if asset['content_type'] == 'application/gzip'
-        and os.uname().machine in asset['name']
-        and 'darwin' not in asset['name'])
+machine = os.uname().machine
+urls = (asset['browser_download_url'] for asset in requests.get(url, headers=headers).json()[0]['assets'])
+filename = f'ripgrep-*-{machine}-unknown-linux-musl.tar.gz'
+url = next(url for url in urls if PurePosixPath(url).match(filename))
 print(url)
 EOF
 )
@@ -27,7 +27,7 @@ EOF
 ARCHIVE=$(basename "$URL")
 ARCH=$(echo "$ARCHIVE" | cut -d - -f 3)
 VERSION=$(echo "$ARCHIVE" | cut -d - -f 2)
-SRC="$PRGNAM-$VERSION-$ARCH-unknown-linux-musl"
+SRC=$(basename "$ARCHIVE" .tar.gz)
 
 cd "$TMP"
 rm -rf "$ARCHIVE" "$PKG" "$SRC"
