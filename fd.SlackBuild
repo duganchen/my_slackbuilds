@@ -11,25 +11,30 @@ PKG=$TMP/package-$PRGNAM
 
 # This works as of 6.3.0. Tested on 64-bit, *should* work on
 # 32-bit. Note the need for Python 3, which is in slackware-current.
+
+# We want either of the following:
+# https://github.com/sharkdp/fd/releases/download/v6.3.0/fd-v6.3.0-i686-unknown-linux-gnu.tar.gz
+# https://github.com/sharkdp/fd/releases/download/v6.3.0/fd-v6.3.0-x86_64-unknown-linux-gnu.tar.gz
+
 URL=$(python3 - << EOF
-import requests
 import os
+from pathlib import PurePosixPath
+import requests
 url = 'https://api.github.com/repos/sharkdp/fd/releases'
 headers = {'Accept': 'application/vnd.github.v3+json'}
-url, = (asset['browser_download_url'] for asset in
-        requests.get(url, headers=headers).json()[0]['assets']
-        if asset['content_type'] == 'application/gzip'
-        and os.uname().machine in asset['name']
-        and 'darwin' not in asset['name']
-        and 'musl' not in asset['name'])
+machine = os.uname().machine
+urls = (asset['browser_download_url'] for asset in requests.get(url, headers=headers).json()[0]['assets'])
+filename = f'fd-v*-{machine}-unknown-linux-gnu.tar.gz'
+url = next(url for url in urls if PurePosixPath(url).match(filename))
 print(url)
 EOF
 )
 
 ARCHIVE=$(basename "$URL")
 VERSION=$(echo "$ARCHIVE" | cut -d v -f 2 | cut -d - -f 1)
+
 ARCH=$(echo "$ARCHIVE" | cut -d - -f 3)
-SRC=$(basename $ARCHIVE .tar.gz)
+SRC=$(basename "$ARCHIVE" .tar.gz)
 
 cd "$TMP"
 rm -rf "$ARCHIVE" "$PKG" "$SRC"
