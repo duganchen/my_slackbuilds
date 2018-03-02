@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Packages a Debian icon theme.
+# Tested with:
+# papirus-icon-theme_20180302-2237+pkg18~ubuntu18.04.1_all.deb
+
+# Run this with the .deb file in the same directory as the SlackBuild.
+# There cannot be any other .deb files that directory.
+
+BUILD=${BUILD:-1}
+TAG=${TAG:-dc}
+TMP=${TMP:-/tmp}
+
+CWD=$(pwd)
+DEB=$(basename "$(echo ./*.deb)")
+PRGNAM=$(echo "$DEB" | cut -d _ -f 1)
+VERSION=$(echo "$DEB" | cut -d _ -f 2 | cut -d - -f 1)
+
+PKG="$TMP/package-$PRGNAM"
+SRC="$TMP/$PRGNAM-$VERSION"
+
+rm -rf "$PKG" "$SRC"
+mkdir -p "$PKG" "$SRC"
+
+cd "$SRC"
+ar x "$CWD/$DEB"
+
+cd "$PKG"
+find "$SRC" -name "data.tar.*" -exec tar xvf {} \;
+mv usr/share/doc usr
+find usr/share/icons -name index.theme -exec sed -i '/^Inherits=/ s/gnome/Adwaita/g' {} \;
+find usr/doc -name "*.gz" -exec gunzip {} \;
+
+/sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-noarch-$BUILD$TAG.${PKGTYPE:-tgz}"
