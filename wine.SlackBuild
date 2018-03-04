@@ -50,7 +50,11 @@ cd wine_src
 wget "http://mirrors.ibiblio.org/wine/source/$BRANCH/wine-$VERSION.tar.xz"
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/master/system/wine/slack-desc
 
+wget --content-disposition "https://github.com/wine-staging/wine-staging/archive/v$VERSION.tar.gz"
 tar xvf wine-${VERSION}.tar.xz
+tar xvf wine-staging-${VERSION}.tar.gz
+cd wine-staging-$VERSION/patches
+./patchinstall.sh --all DESTDIR=$TMP/wine_src/wine-$VERSION
 
 cd "$TMP/wine_src/wine-$VERSION"
 
@@ -60,6 +64,8 @@ find -L . \
   -o -perm 511 \) -exec chmod 755 {} \; -o \
  \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
   -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+autoreconf -i
 
 mkdir "$TMP/wine_src/win64-build"
 cd "$TMP/wine_src/win64-build"
