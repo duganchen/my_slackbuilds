@@ -27,7 +27,7 @@ cat << EOF > mpv_options
 --mandir=/usr/man
 --docdir=/usr/doc/mpv
 EOF
-./rebuild -j"$(nproc)"
+./rebuild -j"$(( $(nproc) + 1))"
 cd mpv
 VERSION="$(git describe --tags | cut -c 2-)"
 ./waf --destdir="$PKG" install
