@@ -90,11 +90,11 @@ CFLAGS="$SLKCFLAGS" \
   --docdir=/usr/doc/wine-"$VERSION" \
   --build="$ARCH"-slackware-linux
 
-make -j "$JOBS"
-make install DESTDIR="$PKG" -j $JOBS
+make -j
+make install DESTDIR="$PKG"
 
 cd ../win64-build
-make install DESTDIR="$PKG" -j $JOBS
+make install DESTDIR="$PKG"
 
 find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
   | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
