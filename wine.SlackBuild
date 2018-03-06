@@ -54,7 +54,7 @@ wget --content-disposition "https://github.com/wine-staging/wine-staging/archive
 tar xvf wine-${VERSION}.tar.xz
 tar xvf wine-staging-${VERSION}.tar.gz
 cd wine-staging-$VERSION/patches
-./patchinstall.sh --all DESTDIR=$TMP/wine_src/wine-$VERSION
+./patchinstall.sh --all DESTDIR="$TMP/wine_src/wine-$VERSION"
 
 cd "$TMP/wine_src/wine-$VERSION"
 
