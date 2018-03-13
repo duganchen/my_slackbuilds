@@ -2,4 +2,12 @@
 
 # Builds *any* LxQt component. Put the tarball in the same directory as the SlackBuild and run it.
 
+SRC=$(echo ./*.tar.xz)
+PRGNAM=$(basename "$SRC" | cut -d - -f 1)
+VERSION=$(basename "$SRC" .tar.xz | cut -d - -f 2)
+
+echo "$SRC"
+echo "$PRGNAM"
+echo "$VERSION"
+
 
