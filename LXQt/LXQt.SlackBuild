@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# Builds *any* LxQt component. Put the tarball in the same directory as the SlackBuild and run it.
+
+
