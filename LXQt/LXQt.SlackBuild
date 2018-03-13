@@ -1,19 +1,18 @@
 #!/usr/bin/env bash
 
+set -e
+
 # Builds *any* LxQt component. Put the tarball in the same directory as the SlackBuild and run it.
 
 TMP=${TMP:-/tmp}
 BUILD=1
 TAG=dc
 
-CWD="$PWD"
-
-SRC=$(echo "$CWD"/*.tar.xz)
+SRC=$(echo "$PWD"/*.tar.xz)
 PRGNAM=$(basename "$SRC" | cut -d - -f 1)
 VERSION=$(basename "$SRC" .tar.xz | cut -d - -f 2)
 
 PKG="$TMP/package-$PRGNAM"
-
 
 if [[ -z "$ARCH" ]]; then
   case $( uname -m ) in
@@ -23,6 +22,20 @@ if [[ -z "$ARCH" ]]; then
   esac
 fi
 
-echo "$SRC"
-echo "$PRGNAM"
-echo "$VERSION"
+rm -rf "$PKG" "$TMP/$PRGNAM-$VERSION"
+
+cd "$TMP"
+tar xvf "$SRC"
+
+cd "$PRGNAM-$VERSION"
+
+mkdir -p build
+cd build
+cmake \
+  -DCMAKE_INSTALL_PREFIX=/usr \
+  -DCMAKE_BUILD_TYPE=Release ..
+make
+make install DESTDIR="$PKG"
+
+cd "$PKG"
+/sbin/makepkg -l y -c n "$OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}"
