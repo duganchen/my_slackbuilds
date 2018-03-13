@@ -6,7 +6,9 @@ TMP=${TMP:-/tmp}
 BUILD=1
 TAG=dc
 
-SRC=$(echo ./*.tar.xz)
+CWD="$PWD"
+
+SRC=$(echo "$CWD"/*.tar.xz)
 PRGNAM=$(basename "$SRC" | cut -d - -f 1)
 VERSION=$(basename "$SRC" .tar.xz | cut -d - -f 2)
 
@@ -21,3 +23,6 @@ if [[ -z "$ARCH" ]]; then
   esac
 fi
 
+echo "$SRC"
+echo "$PRGNAM"
+echo "$VERSION"
