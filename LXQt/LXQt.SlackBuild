@@ -41,4 +41,4 @@ find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | 
     | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 
 cd "$PKG"
-/sbin/makepkg -l y -c n "$OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}"
+/sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}"
