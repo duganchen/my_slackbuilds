@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Builds *any* LxQt component. Put the tarball in the same directory as the SlackBuild and run it.
+
+# On -current, you need KDE Frameworks 5, libstatgrab, muParser.
+
+TMP=${TMP:-/tmp}
+BUILD=1
+TAG=dc
+
+SRC=$(echo "$PWD"/*.tar.xz)
+
+PRGNAM=$(basename "$SRC" .tar.xz | rev | cut -d - -f 2- | rev)
+VERSION=$(basename "$SRC" .tar.xz | rev | cut -d - -f 1 | rev)
+
+PKG="$TMP/package-$PRGNAM"
+
+if [[ -z "$ARCH" ]]; then
+  case $( uname -m ) in
+    i?86) ARCH=i486 ;;
+    arm*) ARCH=arm ;;
+    *) ARCH=$( uname -m ) ;;
+  esac
+fi
+
+rm -rf "$PKG" "$TMP/$PRGNAM-$VERSION"
+
+cd "$TMP"
+tar xvf "$SRC"
+
+cd "$PRGNAM-$VERSION"
+
+mkdir -p build
+cd build
+cmake \
+  -DCMAKE_INSTALL_PREFIX=/usr \
+  -DCMAKE_BUILD_TYPE=Release .. \
+  -DCMAKE_INSTALL_MANDIR=/usr/man
+make
+make install DESTDIR="$PKG"
+
+find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+    | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+if [ -d "$PKG/usr/man" ]; then
+  find "$PKG/usr/man" -type f -exec gzip -9 {} \;
+fi
+
+cd "$PKG"
+/sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}"
