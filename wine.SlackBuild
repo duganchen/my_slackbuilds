@@ -39,9 +39,6 @@ case $ARCH in
     ;;
 esac
 
-# I believe the rule is one more than the number of cores?
-export MAKEFLAGS=${MAKEFLAGS:-"-j$(("$(nproc)" + 1))"}
-
 rm -rf "$PKG" "$TMP/wine_src"
 cd "$TMP"
 
@@ -50,8 +47,9 @@ cd wine_src
 wget "http://mirrors.ibiblio.org/wine/source/$BRANCH/wine-$VERSION.tar.xz"
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/master/system/wine/slack-desc
 
-wget --content-disposition "https://github.com/wine-staging/wine-staging/archive/v$VERSION.tar.gz"
 tar xvf wine-${VERSION}.tar.xz
+
+wget --content-disposition "https://github.com/wine-staging/wine-staging/archive/v$VERSION.tar.gz"
 tar xvf wine-staging-${VERSION}.tar.gz
 cd wine-staging-$VERSION/patches
 ./patchinstall.sh --all DESTDIR="$TMP/wine_src/wine-$VERSION"
@@ -76,6 +74,7 @@ CFLAGS="$SLKCFLAGS" \
   --prefix=/usr \
   --mandir=/usr/man \
   --docdir=/usr/doc/wine-"$VERSION" \
+  --disable-tests \
   --build="$ARCH"-slackware-linux
 make
 
@@ -88,11 +87,12 @@ CFLAGS="$SLKCFLAGS" \
   --prefix=/usr \
   --mandir=/usr/man \
   --docdir=/usr/doc/wine-"$VERSION" \
+  --disable-tests \
   --build="$ARCH"-slackware-linux
 
-make -j
-make install DESTDIR="$PKG"
+make
 
+make install DESTDIR="$PKG"
 cd ../win64-build
 make install DESTDIR="$PKG"
 
