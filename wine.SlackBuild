@@ -8,7 +8,7 @@
 set -e
 
 # Change this as needed.
-VERSION=3.5
+VERSION=3.6
 
 BUILD=${BUILD:-1}
 TAG=${TAG:-dc}
@@ -44,7 +44,7 @@ cd "$TMP"
 
 mkdir wine_src
 cd wine_src
-wget "http://mirrors.ibiblio.org/wine/source/$BRANCH/wine-$VERSION.tar.xz"
+wget "https://dl.winehq.org/wine/source/$BRANCH/wine-$VERSION.tar.xz"
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/master/system/wine/slack-desc
 
 tar xvf wine-${VERSION}.tar.xz
