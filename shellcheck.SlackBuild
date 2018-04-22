@@ -11,7 +11,7 @@ set -e
 
 # Update UPSTREAM_VERSION as needed.
 
-UPSTREAM_VERSION=${UPSTREAM_VERSION:-0.4.6}
+UPSTREAM_VERSION=${UPSTREAM_VERSION:-0.4.7}
 DEBIAN_REVISION=${DEBIAN_REVISION:-1}
 MIRROR=${MIRROR:-http://ftp.ca.debian.org}
 TMP=${TMP:-/tmp}
@@ -53,5 +53,6 @@ ar x "$TMP/shellcheck/$(basename "$SRCURL")"
 cd "$PKG"
 tar xf "$TMP/shellcheck/data.tar.xz"
 mv usr/share/{doc,man} usr
+gunzip usr/doc/shellcheck/*.gz
 
 /sbin/makepkg -l y -c n "$TMP/shellcheck-${UPSTREAM_VERSION}-${ARCH}-${BUILD}${TAG}.txz"
