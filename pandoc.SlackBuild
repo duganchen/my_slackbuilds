@@ -1,0 +1,44 @@
+#!/bin/env bash
+
+set -e
+
+BUILD=${BUILD:-1}
+TAG=${TAG:-dc}
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-pandoc
+
+URL=$(python3 - << EOF
+import os
+from pathlib import PurePosixPath
+import requests
+url = 'https://api.github.com/repos/jgm/pandoc/releases'
+headers = {'Accept': 'application/vnd.github.v3+json'}
+response = requests.get(url, headers=headers).json()
+print(next(asset['browser_download_url'] for asset in response[0]['assets'] if asset['content_type'] == 'application/x-gzip'))
+EOF
+)
+
+TMP=${TMP:-/tmp}
+
+VERSION=$(echo "$URL" | cut -d - -f 2)
+rm -rf "$TMP/pandoc-$VERSION" "$PKG"
+rm -f "$TMP/pandoc-$VERSION-linux.tar.gz"
+mkdir -p "$PKG"
+
+cd "$TMP"
+
+wget --content-disposition "$URL"
+tar xvf "pandoc-$VERSION-linux.tar.gz"
+cd "pandoc-$VERSION"
+chown -R root:root .
+find -L . \
+    \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+    -o -perm 511 \) -exec chmod 755 {} \; -o \
+    \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+    -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+PREFIX="$PKG/usr"
+mkdir -p "$PREFIX"
+cp -r bin "$PREFIX"
+cp -r share/man "$PREFIX"
+cd "$PKG"
+/sbin/makepkg -l y -c n "$TMP/pandoc-$VERSION-x86_64-$BUILD$TAG.${PKGTYPE:-tgz}"
