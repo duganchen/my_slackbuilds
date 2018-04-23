@@ -4,6 +4,7 @@ set -e
 
 # Packages a Debian icon theme.
 # Tested with:
+# humanity-icon-theme_0.6.15_all.deb
 # papirus-icon-theme_20180302-2237+pkg18~ubuntu18.04.1_all.deb
 # ubuntu-mono_14.04+16.04.20180326-0ubuntu1_all.deb
 
@@ -17,7 +18,7 @@ TMP=${TMP:-/tmp}
 CWD=$(pwd)
 DEB=$(basename "$(echo ./*.deb)")
 PRGNAM=$(echo "$DEB" | cut -d _ -f 1)
-VERSION=$(echo "$DEB" | cut -d _ -f 2 | cut -d - -f 1 | rev | cut -d . -f 1 | rev)
+VERSION=$(echo "$DEB" | cut -d _ -f 2 | cut -d - -f 1)
 
 PKG="$TMP/package-$PRGNAM"
 SRC="$TMP/$PRGNAM-$VERSION"
