@@ -2,9 +2,9 @@
 
 set -e
 
-# Packages a Debian icon theme.
+# Packages an Ubuntu icon theme.
 # Tested with:
-# papirus-icon-theme_20180302-2237+pkg18~ubuntu18.04.1_all.deb
+# ubuntu-mono_16.10+18.04.20180421.1-0ubuntu1_all.deb
 
 # Run this with the .deb file in the same directory as the SlackBuild.
 # There cannot be any other .deb files that directory.
@@ -16,7 +16,7 @@ TMP=${TMP:-/tmp}
 CWD=$(pwd)
 DEB=$(basename "$(echo ./*.deb)")
 PRGNAM=$(echo "$DEB" | cut -d _ -f 1)
-VERSION=$(echo "$DEB" | cut -d _ -f 2 | cut -d - -f 1)
+VERSION=$(echo "$DEB" | cut -d . -f 4)
 
 PKG="$TMP/package-$PRGNAM"
 SRC="$TMP/$PRGNAM-$VERSION"
