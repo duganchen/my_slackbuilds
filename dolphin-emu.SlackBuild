@@ -57,6 +57,7 @@ cmake .. \
  -DCMAKE_INSTALL_PREFIX:PATH=/usr \
  -Dbindir=/usr/games \
  -Dmandir=/usr/man \
+ -DENABLE_WX=OFF \
  -DLIB_INSTALL_DIR=lib${LIBDIRSUFFIX} \
  -DCMAKE_C_FLAGS:STRING=$SLKCFLAGS \
  -DCMAKE_CXX_FLAGS:STRING=$SLKCFLAGS \
