@@ -78,13 +78,11 @@ CFLAGS="$SLKCFLAGS" \
   --build="$ARCH"-slackware-linux
 make
 
-GSTREAMER_CFLAGS="-I/usr/lib/glib-2.0/include -I/usr/include/gstreamer-1.0 -I/usr/include/glib-2.0"
-
 mkdir -p "$TMP/wine_src/win32-build"
 cd "$TMP/wine_src/win32-build"
 CFLAGS="$SLKCFLAGS" \
   CXXFLAGS="$SLKCFLAGS" \
-  GSTREAMER_CFLAGS="$GSTREAMER_CFLAGS" \
+  PKG_CONFIG_PATH="/usr/lib/pkgconfig:$PKG_CONFIG_PATH" \
   "$TMP/wine_src/wine-$VERSION/configure" \
   --prefix=/usr \
   --mandir=/usr/man \
