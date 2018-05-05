@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+set -e
+
+PRGNAM=hub
+BUILD=${BUILD:-1}
+TAG=${TAG:-dc}
+TMP=${TMP:-/tmp}
+
+PKG=$TMP/package-$PRGNAM
+
+if [[ -z $ARCH ]]; then
+  case "$( uname -m )" in
+    i?86) ARCH=i486 ;;
+    arm*) ARCH=arm ;;
+    *) ARCH="$( uname -m )" ;;
+  esac
+fi
+
+URL="$(python3 - << EOF
+import os
+from pathlib import PurePosixPath
+import requests
+machine = os.uname().machine
+if machine == 'x86_64':
+    label = 'for Linux 64-bit'
+else:
+    label = 'for Linux 32-bit'
+
+url = 'https://api.github.com/repos/github/hub/releases'
+headers = {'Accept': 'application/vnd.github.v3+json'}
+releases = requests.get(url, headers=headers).json()
+url = next(asset['browser_download_url'] for asset in releases[0]['assets'] if asset['label'].endswith(label))
+print(url)
+EOF
+)"
+
+
+ARCHIVE=$(basename "$URL")
+VERSION=$(echo "$ARCHIVE" | cut -d - -f 4)
+
+SRC=$(basename "$ARCHIVE" .tgz)
+
+cd "$TMP"
+rm -rf "$ARCHIVE" "$PKG" "$SRC"
+wget --content-disposition "$URL"
+tar xf "$ARCHIVE"
+mkdir -p "$PKG/usr/man/man1"
+mkdir -p "$PKG/usr/bin"
+mkdir -p "$PKG/usr/doc/hub-$VERSION"
+mkdir -p "$PKG/usr/share/zsh/site-functions"
+mkdir -p "$PKG/usr/share/bash-completion/completions"
+mkdir -p "$PKG/usr/share/fish/completions"
+cd "$SRC"
+cp -a LICENSE README.md "$PKG/usr/doc/$PRGNAM-$VERSION"
+cp -a etc/README.md "$PKG/usr/doc/$PRGNAM-$VERSION/README.completion.md"
+cp bin/hub "$PKG/usr/bin"
+cp share/man/man1/*.1 "$PKG/usr/man/man1"
+for m in "$PKG"/usr/man/man1/*.1; do
+  gzip -9 $m
+done
+cp etc/hub.bash_completion.sh "$PKG/usr/share/bash-completion/completions/hub"
+cp etc/hub.zsh_completion "$PKG/usr/share/zsh/site-functions/_hub"
+cp etc/hub.fish_completion "$PKG/usr/share/fish/completions/hub.fish"
+cd "$PKG"
+/sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}"
