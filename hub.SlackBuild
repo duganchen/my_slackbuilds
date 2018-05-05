@@ -62,5 +62,8 @@ done
 cp etc/hub.bash_completion.sh "$PKG/usr/share/bash-completion/completions/hub"
 cp etc/hub.zsh_completion "$PKG/usr/share/zsh/site-functions/_hub"
 cp etc/hub.fish_completion "$PKG/usr/share/fish/completions/hub.fish"
+mkdir -p "$PKG/install"
+cd "$PKG/install"
+wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/development/hub/slack-desc
 cd "$PKG"
 /sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}"
