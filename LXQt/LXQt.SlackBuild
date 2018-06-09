@@ -37,12 +37,18 @@ cd build
 cmake \
   -DCMAKE_INSTALL_PREFIX=/usr \
   -DCMAKE_BUILD_TYPE=Release .. \
-  -DCMAKE_INSTALL_MANDIR=/usr/man
+  -DCMAKE_INSTALL_MANDIR=/usr/man \
+  -DCMAKE_INSTALL_FULL_DATADIR=/usr
 make
 make install DESTDIR="$PKG"
 
 find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
     | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+# Needed for qps 1.10.18 AFAIK.
+if [ -d "$PKG/usr/share/man" ]; then
+  mv "$PKG/usr/share/man" "$PKG/usr/man"
+fi
 
 if [ -d "$PKG/usr/man" ]; then
   find "$PKG/usr/man" -type f -exec gzip -9 {} \;
