@@ -50,7 +50,7 @@ mkdir -p "$PKG/usr/bin"
 mkdir -p "$PKG/usr/doc/hub-$VERSION"
 mkdir -p "$PKG/usr/share/zsh/site-functions"
 mkdir -p "$PKG/usr/share/bash-completion/completions"
-mkdir -p "$PKG/usr/share/fish/completions"
+mkdir -p "$PKG/usr/share/fish/vendor_completions.d"
 cd "$SRC"
 cp -a LICENSE README.md "$PKG/usr/doc/$PRGNAM-$VERSION"
 cp -a etc/README.md "$PKG/usr/doc/$PRGNAM-$VERSION/README.completion.md"
@@ -61,7 +61,7 @@ for m in "$PKG"/usr/man/man1/*.1; do
 done
 cp etc/hub.bash_completion.sh "$PKG/usr/share/bash-completion/completions/hub"
 cp etc/hub.zsh_completion "$PKG/usr/share/zsh/site-functions/_hub"
-cp etc/hub.fish_completion "$PKG/usr/share/fish/completions/hub.fish"
+cp etc/hub.fish_completion "$PKG/usr/share/fish/vendor_completions.d/hub.fish"
 mkdir -p "$PKG/install"
 cd "$PKG/install"
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/current/development/hub/slack-desc
