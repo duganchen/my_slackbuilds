@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Run this with the deb file in the same directory.
+# This is meant for Discord from discordapp.com.
+
+TAG=1dc
+TMP="${TMP:-/tmp}"
+
+if [[ -z $ARCH ]]; then
+  case "$( uname -m )" in
+    i?86) ARCH=i486 ;;
+    arm*) ARCH=arm ;;
+    *) ARCH="$( uname -m )" ;;
+  esac
+fi
+
+DEB="$(echo discord-*.deb)"
+VERSION="$(basename "$DEB" .deb | cut -d - -f 2)"
+CWD=$(pwd)
+
+cd "$TMP"
+rm -rf package-discord
+mkdir -p package-discord
+cd package-discord
+ar x "$CWD/$DEB"
+rm control.tar.gz debian-binary
+tar xf data.tar.xz
+rm data.tar.xz
+mv usr/share/doc usr
+
+/sbin/makepkg -l y -c n "$TMP/discord-$VERSION-$ARCH-$TAG.${PKGTYPE:-tgz}"
