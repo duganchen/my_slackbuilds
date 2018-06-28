@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
+set -e
+
 # This builds a nodejs binary package. Have it in the same directory
 # as the SlackBuild when you run it.
 
-# Sample fileame:
-# node-v8.9.4-linux-x64.tar.xz
+# Change this as appropriate.
+VERSION=8.11.3
 
 TAG=1dc
 
@@ -16,16 +18,26 @@ if [[ -z $ARCH ]]; then
 	esac
 fi
 
-TARBALL=$(echo node-v*-linux-*.tar.xz)
-VERSION=$(echo $TARBALL | cut -d v -f 2 | cut -d - -f 1)
+if [ "$ARCH" = "x86_64" ]; then
+  PKGARCH="x64"
+else
+  PKGARCH="x86"
+fi
+
+URL="https://nodejs.org/dist/v${VERSION}/node-v${VERSION}-linux-${PKGARCH}.tar.xz"
+TARBALL=$(basename $URL)
+
 TMP=${TMP:-/tmp}
-rm -rf $TMP/package-nodejs
-mkdir -p $TMP/package-nodejs
-CWD=$(pwd)
-cd $TMP/package-nodejs
-tar xf $CWD/$TARBALL
-mv $(basename $TARBALL .tar.xz) usr
+rm -f "$TMP/$TARBALL"
+rm -rf "$TMP/package-nodejs"
+
+cd "$TMP"
+wget "$URL"
+mkdir -p "$TMP/package-nodejs"
+cd "$TMP/package-nodejs"
+tar xf "../$TARBALL"
+mv "$(basename "$TARBALL" .tar.xz)" usr
 mv usr/share/{doc,man} usr
 find usr -type f -maxdepth 1 -exec mv {} usr/doc/node \;
 gzip -9 usr/man/man1/node.1
-/sbin/makepkg -l y -c n /tmp/nodejs-$VERSION-$ARCH-$TAG.tgz
+/sbin/makepkg -l y -c n "/tmp/nodejs-$VERSION-$ARCH-$TAG.${PKGTYPE:-tgz}"
