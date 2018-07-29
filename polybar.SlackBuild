@@ -30,7 +30,7 @@ EOF
 # https://github.com/jaagr/polybar/releases/download/3.2.0/polybar.tar
 # And the directory inside the archive is just named "polybar".
 
-VERSION=$(basename $(dirname $URL))
+VERSION=$(basename "$(dirname "$URL")" )
 
 cd "$TMP"
 rm -rf "$PKG" polybar polybar.tar
