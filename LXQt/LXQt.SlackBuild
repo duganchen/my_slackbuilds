@@ -7,7 +7,7 @@ set -e
 # On -current, you need KDE Frameworks 5, libstatgrab, muParser.
 
 TMP=${TMP:-/tmp}
-BUILD=1
+BUILD=${BUILD:-1}
 TAG=dc
 
 SRC=$(echo "$PWD"/*.tar.xz)
