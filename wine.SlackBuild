@@ -110,4 +110,4 @@ mkdir -p "$PKG/install"
 cat "$TMP/wine_src/slack-desc" > "$PKG/install/slack-desc"
 
 cd "$PKG"
-/sbin/makepkg -l y -c n "$TMP/wine-${VERSION}-${ARCH}-$BUILD$TAG.txz"
+/sbin/makepkg -l y -c n "$TMP/wine-${VERSION}-${ARCH}-$BUILD$TAG.${PKGTYPE:-tgz}"
