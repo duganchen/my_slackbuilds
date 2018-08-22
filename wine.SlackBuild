@@ -7,9 +7,6 @@
 
 set -e
 
-# Change this as needed.
-VERSION=3.14
-
 BUILD=${BUILD:-1}
 TAG=${TAG:-dc}
 TMP=${TMP:-/tmp}
@@ -38,6 +35,17 @@ case $ARCH in
     SLKCFLAGS="-O2"
     ;;
 esac
+
+VERSION="$(python3 - << EOF
+import os
+from pathlib import PurePosixPath
+import requests
+url = 'https://api.github.com/repos/wine-staging/wine-staging/tags'
+headers = {'Accept': 'application/vnd.github.v3+json'}
+releases = requests.get(url, headers=headers).json()
+print(releases[0]['name'][1:])
+EOF
+)"
 
 rm -rf "$PKG" "$TMP/wine_src"
 cd "$TMP"
