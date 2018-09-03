@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+set -e
+
+PRGNAM=bat
+BUILD=${BUILD:-1}
+TAG=${TAG:-dc}
+TMP=${TMP:-/tmp}
+
+PKG=$TMP/package-$PRGNAM
+
+URL=$(python3 - << EOF
+import os
+from pathlib import PurePosixPath
+import requests
+url = 'https://api.github.com/repos/sharkdp/bat/releases'
+headers = {'Accept': 'application/vnd.github.v3+json'}
+machine = os.uname().machine
+urls = (asset['browser_download_url'] for asset in requests.get(url, headers=headers).json()[0]['assets'])
+filename = f'bat-v*-{machine}-unknown-linux-gnu.tar.gz'
+url = next(url for url in urls if PurePosixPath(url).match(filename))
+print(url)
+EOF
+)
+
+ARCHIVE=$(basename "$URL")
+VERSION=$(echo "$ARCHIVE" | cut -d v -f 2 | cut -d - -f 1)
+
+ARCH=$(echo "$ARCHIVE" | cut -d - -f 3)
+SRC=$(basename "$ARCHIVE" .tar.gz)
+
+cd "$TMP"
+rm -rf "$ARCHIVE" "$PKG" "$SRC"
+wget --content-disposition "$URL"
+tar xf "$SRC.tar".*
+mkdir -p "$PKG/usr/bin"
+mkdir -p "$PKG/usr/doc/bat-$VERSION"
+mkdir -p "$PKG/usr/man/man1"
+cd "$SRC"
+cp -a LICENSE-APACHE LICENSE-MIT README.md "$PKG/usr/doc/$PRGNAM-$VERSION"
+cp bat "$PKG/usr/bin"
+cp bat.1 "$PKG/usr/man/man1"
+gzip -9 "$PKG/usr/man/man1/bat.1"
+cd "$PKG"
+/sbin/makepkg -l y -c n "$TMP/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}"
