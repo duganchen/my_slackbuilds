@@ -1,9 +1,12 @@
 #!/bin/env bash
 
-# Builds Wine with the wine-staging patches. This is meant for a multilib system, and will build a WOW64-enabled WINE (one "wine"
-# executable for both 32-bit and 64-bit apps).
+# Builds WINE. This is meant for a multilib system, and will build a WOW64-enabled WINE (one "wine"
+# executable for both 32-bit and 64-bit apps). The version built is the latest that wine-staging
+# is available for.
 #
 # This is based on the SBo SlackBuild.
+
+# Set STAGING=false to build without the wine-staging patches.
 
 set -e
 
@@ -57,10 +60,12 @@ wget https://raw.githubusercontent.com/Ponce/slackbuilds/master/system/wine/slac
 
 tar xvf wine-${VERSION}.tar.xz
 
-wget --content-disposition "https://github.com/wine-staging/wine-staging/archive/v$VERSION.tar.gz"
-tar xvf wine-staging-${VERSION}.tar.gz
-cd wine-staging-$VERSION/patches
-./patchinstall.sh --all DESTDIR="$TMP/wine_src/wine-$VERSION"
+if [[ "$STAGING" != "false" ]]; then
+  wget --content-disposition "https://github.com/wine-staging/wine-staging/archive/v$VERSION.tar.gz"
+  tar xvf wine-staging-${VERSION}.tar.gz
+  cd wine-staging-$VERSION/patches
+  ./patchinstall.sh --all DESTDIR="$TMP/wine_src/wine-$VERSION"
+fi
 
 cd "$TMP/wine_src/wine-$VERSION"
 
