@@ -36,14 +36,32 @@ case $ARCH in
 		;;
 esac
 
+VERSION="$(python3 - << EOF
+import os
+from pathlib import PurePosixPath
+import requests
+url = 'https://api.github.com/repos/tsujan/Kvantum/releases'
+headers = {'Accept': 'application/vnd.github.v3+json'}
+releases = requests.get(url, headers=headers).json()
+from pprint import pprint
+print(releases[0]['name'])
+EOF
+)"
+
+# The version, download URL and tarball are:
+# 0.10.8
+# https://github.com/tsujan/Kvantum/archive/V0.10.8.tar.gz
+# Kvantum-0.10.8.tar.gz
+
 rm -rf "$PKG"
-rm -rf "$TMP/$PRGNAM"
+rm -rf "$TMP/$PRGNAM-$VERSION"
+rm -f "$TMP/$PRGNAM-$VERSION.tar.gz"
 
 cd $TMP
-git clone $REPO
-cd $PRGNAM/$PRGNAM
 
-VERSION=$( git rev-parse --short HEAD )
+wget --content-disposition "https://github.com/tsujan/Kvantum/archive/V$VERSION.tar.gz"
+tar xf "$PRGNAM-$VERSION.tar.gz"
+cd "$PRGNAM-$VERSION"
 
 chown -R root:root .
 find -L . \
@@ -52,13 +70,14 @@ find -L . \
 	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
 	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
-mkdir build
-cd build
+mkdir Kvantum/build
+cd Kvantum/build
 cmake \
 	-DCMAKE_C_FLAGS:STRING="$SLKCFLAGS" \
 	-DCMAKE_CXX_FLAGS:STRING="$SLKCFLAGS" \
 	..
-make -j "$(nproc)" install DESTDIR="$PKG"
+
+make install DESTDIR="$PKG"
 
 find $PKG -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
 	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
