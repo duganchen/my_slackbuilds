@@ -6,7 +6,7 @@ set -e
 # as the SlackBuild when you run it.
 
 # Change this as appropriate.
-VERSION=8.11.3
+VERSION=10.13.0
 
 TAG=1dc
 
