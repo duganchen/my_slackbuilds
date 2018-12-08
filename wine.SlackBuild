@@ -14,7 +14,7 @@ BUILD=${BUILD:-1}
 TAG=${TAG:-dc}
 TMP=${TMP:-/tmp}
 PKG=$TMP/package-wine
-BRANCH=3.x
+BRANCH=4.0
 
 if [[ -z $ARCH ]]; then
   case $( uname -m ) in
