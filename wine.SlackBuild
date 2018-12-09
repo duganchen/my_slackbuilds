@@ -8,9 +8,6 @@
 
 # Set STAGING=false to build without the wine-staging patches.
 
-# Note: This currently versions the package as "wine-4.0-rc1". Which means Slackware's packaging tools see the package name
-# as "wine-4.0" and the version as "rc1". I didn't have time to fix this yet.
-
 set -e
 
 BUILD=${BUILD:-1}
@@ -52,6 +49,14 @@ releases = requests.get(url, headers=headers).json()
 print(releases[0]['name'][1:])
 EOF
 )"
+
+
+# Clean release-candidate versions so that they're Slackware-compatible.
+if [[ "$VERSION" =~ [0-9]+.[0-9]+-rc[0-9]+ ]]; then
+  PKGVER=${VERSION//-/}
+else
+  PKGVER="$VERSION"
+fi
 
 rm -rf "$PKG" "$TMP/wine_src"
 cd "$TMP"
@@ -126,4 +131,4 @@ mkdir -p "$PKG/install"
 cat "$TMP/wine_src/slack-desc" > "$PKG/install/slack-desc"
 
 cd "$PKG"
-/sbin/makepkg -l y -c n "$TMP/wine-${VERSION}-${ARCH}-$BUILD$TAG.${PKGTYPE:-tgz}"
+/sbin/makepkg -l y -c n "$TMP/wine-${PKGVER}-${ARCH}-$BUILD$TAG.${PKGTYPE:-tgz}"
