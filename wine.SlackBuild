@@ -8,6 +8,9 @@
 
 # Set STAGING=false to build without the wine-staging patches.
 
+# Note: This currently versions the package as "wine-4.0-rc1". Which means Slackware's packaging tools see the package name
+# as "wine-4.0" and the version as "rc1". I didn't have time to fix this yet.
+
 set -e
 
 BUILD=${BUILD:-1}
