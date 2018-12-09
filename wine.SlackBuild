@@ -51,12 +51,8 @@ EOF
 )"
 
 
-# Clean release-candidate versions so that they're Slackware-compatible.
-if [[ "$VERSION" =~ [0-9]+.[0-9]+-rc[0-9]+ ]]; then
-  PKGVER=${VERSION//-/}
-else
-  PKGVER="$VERSION"
-fi
+# Clean release-candidate versions (e.g. 4.0-rc1) so that they're Slackware-compatible (e.g. 4.0rc1).
+PKGVER=${VERSION//-/}
 
 rm -rf "$PKG" "$TMP/wine_src"
 cd "$TMP"
