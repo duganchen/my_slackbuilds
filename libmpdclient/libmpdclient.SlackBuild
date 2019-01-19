@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -e
+
+VERSION=${VERSION:-2.16}
+
+BUILD=${BUILD:-1}
+TAG=${TAG:-dc}
+TMP=${TMP:-/tmp}
+
+PKG=$TMP/package-libmpdclient
+
+if [[ -z "$ARCH" ]]; then
+  case $( uname -m ) in
+    i?86) ARCH=i486 ;;
+    arm*) ARCH=arm ;;
+    *) ARCH=$( uname -m ) ;;
+  esac
+fi
+
+CWD="$(pwd)"
+
+rm -rf "$PKG" "$TMP/libmpdclient-$VERSION"
+
+cd "$TMP"
+tar xvf "$CWD/libmpdclient-$VERSION.tar.xz"
+
+cd "libmpdclient-$VERSION"
+
+meson --prefix=/usr . output/release --buildtype=debugoptimized -Db_ndebug=true
+ninja -C output/release
+DESTDIR=$PKG ninja -C output/release install
+
+mkdir "$PKG/usr/doc"
+mv "$PKG/usr/share/doc/libmpdclient" "$PKG/usr/doc"
+rmdir "$PKG/usr/share/doc"
+
+mkdir "$PKG/install"
+wget -O "$PKG/install/slack-desc" https://raw.githubusercontent.com/Ponce/slackbuilds/current/libraries/libmpdclient/slack-desc
+
+cd "$PKG"
+/sbin/makepkg -l y -c n "$TMP/libmpdclient-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}"
