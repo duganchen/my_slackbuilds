@@ -27,19 +27,19 @@ EOF
 )"
 
 # The URL is currently:
-# https://github.com/jaagr/polybar/releases/download/3.2.0/polybar.tar
+# https://github.com/jaagr/polybar/releases/download/3.3.0/polybar-3.3.0.tar
 # And the directory inside the archive is just named "polybar".
 
 VERSION=$(basename "$(dirname "$URL")" )
 
 cd "$TMP"
-rm -rf "$PKG" polybar polybar.tar
+rm -rf "$PKG" polybar "polybar-$VERSION.tar"
 wget --content-disposition "$URL"
-tar xf polybar.tar
+tar xf "polybar-$VERSION.tar"
 cd polybar
 mkdir build
 cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DMAN_INSTALL_DIR=/usr/man
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release
 make install DESTDIR="$PKG"
 cd "$PKG"
 mv usr/share/{doc,man} usr
