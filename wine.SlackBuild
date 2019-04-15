@@ -6,8 +6,6 @@
 #
 # This is based on the SBo SlackBuild.
 
-# Set STAGING=false to build without the wine-staging patches.
-
 set -e
 
 BUILD=${BUILD:-1}
@@ -62,14 +60,12 @@ cd wine_src
 wget "https://dl.winehq.org/wine/source/$BRANCH/wine-$VERSION.tar.xz"
 wget https://raw.githubusercontent.com/Ponce/slackbuilds/master/system/wine/slack-desc
 
-tar xvf wine-${VERSION}.tar.xz
+tar xvf "wine-${VERSION}.tar.xz"
 
-if [[ "$STAGING" != "false" ]]; then
-  wget --content-disposition "https://github.com/wine-staging/wine-staging/archive/v$VERSION.tar.gz"
-  tar xvf wine-staging-${VERSION}.tar.gz
-  cd wine-staging-$VERSION/patches
-  ./patchinstall.sh --all DESTDIR="$TMP/wine_src/wine-$VERSION"
-fi
+wget --content-disposition "https://github.com/wine-staging/wine-staging/archive/v$VERSION.tar.gz"
+tar xvf "wine-staging-${VERSION}.tar.gz"
+cd "wine-staging-$VERSION/patches"
+./patchinstall.sh --all DESTDIR="$TMP/wine_src/wine-$VERSION"
 
 cd "$TMP/wine_src/wine-$VERSION"
 
@@ -80,7 +76,10 @@ find -L . \
  \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
   -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
 
-autoreconf -i
+autoreconf -vif
+
+# The builds fail for me unless I disable GTK3 support.
+# As they say on tvtropes: YMMV.
 
 mkdir "$TMP/wine_src/win64-build"
 cd "$TMP/wine_src/win64-build"
@@ -92,7 +91,9 @@ CFLAGS="$SLKCFLAGS" \
   --mandir=/usr/man \
   --docdir=/usr/doc/wine-"$VERSION" \
   --disable-tests \
-  --build="$ARCH"-slackware-linux
+  --build="$ARCH"-slackware-linux \
+  --without-gtk3
+
 make
 
 mkdir -p "$TMP/wine_src/win32-build"
@@ -106,7 +107,8 @@ CFLAGS="$SLKCFLAGS" \
   --docdir=/usr/doc/wine-"$VERSION" \
   --disable-tests \
   --build="$ARCH"-slackware-linux \
-  --with-wine64=../win64-build
+  --with-wine64=../win64-build \
+  --without-gtk3
 
 make
 
