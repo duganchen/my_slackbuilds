@@ -99,7 +99,7 @@ mkdir -p "$TMP/wine_src/win32-build"
 cd "$TMP/wine_src/win32-build"
 CFLAGS="$SLKCFLAGS" \
   CXXFLAGS="$SLKCFLAGS" \
-  PKG_CONFIG_PATH="/usr/lib/pkgconfig:$PKG_CONFIG_PATH" \
+  PKG_CONFIG_PATH=/usr/lib/pkgconfig \
   "$TMP/wine_src/wine-$VERSION/configure" \
   --prefix=/usr \
   --mandir=/usr/man \
