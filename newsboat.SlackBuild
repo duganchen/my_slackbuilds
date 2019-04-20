@@ -5,7 +5,6 @@ set -e
 # The only dependency you should need from SBo is stfl.
 
 PRGNAM=newsboat
-USER=coelckers
 
 BUILD=1
 TAG=dc
