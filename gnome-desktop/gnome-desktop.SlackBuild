@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Prerequisite: libseccomp (get from SBo)
+
 set -e
 
 VERSION=${VERSION:-3.32.1}
