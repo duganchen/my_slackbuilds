@@ -10,6 +10,9 @@ set -e
 # * webkit2gtk (SBo)
 # 	* etc (webkit2gtk dependencies)
 
+# Another gnome-settings SlackBuild is here:
+# https://gitlab.com/gbschenkel/slackbuilds/tree/current/libraries/gnome-desktop
+
 PRGNAM=lutris
 
 BUILD=1
@@ -31,10 +34,14 @@ HEADER="Accept: application/vnd.github.v3.raw+json"
 PARSER=$(cat <<-END
 import json
 import sys
-print(next(release['tag_name'] for release in json.load(sys.stdin)))
+print(next(release['name'] for release in json.load(sys.stdin)))
 END
 )
-ENDPOINT="https://api.github.com/repos/$PRGNAM/$PRGNAM/releases"
+
+# As of writing, the latest tag is 0.5.2.1, which works, and the latest
+# releases is 0.5.2, which doesn't. See:
+# https://github.com/lutris/lutris/issues/2018
+ENDPOINT="https://api.github.com/repos/$PRGNAM/$PRGNAM/tags"
 
 curl -H "$HEADER" "$ENDPOINT" | python3 -c "$PARSER"
 
