@@ -38,7 +38,7 @@ ENDPOINT="https://api.github.com/repos/$PRGNAM/$PRGNAM/releases"
 
 curl -H "$HEADER" "$ENDPOINT" | python3 -c "$PARSER"
 
-TAG=$(curl -H "$HEADER" "$ENDPOINT" | python -c "$PARSER")
+GITTAG=$(curl -H "$HEADER" "$ENDPOINT" | python -c "$PARSER")
 VERSION=${TAG:1}
 
 rm -rf "$PKG"
@@ -47,7 +47,7 @@ rm -f "${TMP}/${PRGNAM}-${VERSION}.tar.gz"
 
 cd "$TMP"
 
-wget --content-disposition "https://github.com/$PRGNAM/$PRGNAM/archive/$TAG.tar.gz"
+wget --content-disposition "https://github.com/$PRGNAM/$PRGNAM/archive/$GITTAG.tar.gz"
 tar xvf "$PRGNAM-${VERSION}.tar.gz"
 
 cd "${PRGNAM}-${VERSION}"
