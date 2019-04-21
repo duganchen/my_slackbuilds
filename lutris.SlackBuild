@@ -39,7 +39,7 @@ ENDPOINT="https://api.github.com/repos/$PRGNAM/$PRGNAM/releases"
 curl -H "$HEADER" "$ENDPOINT" | python3 -c "$PARSER"
 
 GITTAG=$(curl -H "$HEADER" "$ENDPOINT" | python -c "$PARSER")
-VERSION=${TAG:1}
+VERSION=${GITTAG:1}
 
 rm -rf "$PKG"
 rm -rf "$TMP/$PRGNAM-$VERSION"
