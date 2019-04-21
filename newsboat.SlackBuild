@@ -30,8 +30,6 @@ END
 )
 ENDPOINT="https://api.github.com/repos/newsboat/newsboat/tags"
 
-curl -H "$HEADER" "$ENDPOINT" | python3 -c "$PARSER"
-
 VERSION=$(curl -H "$HEADER" "$ENDPOINT" | python -c "$PARSER")
 
 rm -rf "$PKG"
