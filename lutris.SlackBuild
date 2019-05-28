@@ -5,12 +5,12 @@ set -e
 # Installs Lutris 5 on slackware-current.
 
 # Dependencies:
-# * gnome-settings (this repo)
+# * gnome-desktop (this repo)
 # 	* libseccomp (SBo)
 # * webkit2gtk (SBo)
 # 	* etc (webkit2gtk dependencies)
 
-# Another gnome-settings SlackBuild is here:
+# Another gnome-desktop SlackBuild is here:
 # https://gitlab.com/gbschenkel/slackbuilds/tree/current/libraries/gnome-desktop
 
 PRGNAM=lutris

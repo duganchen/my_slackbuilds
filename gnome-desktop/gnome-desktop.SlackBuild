@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
 
+# Source from here:
+# https://download.gnome.org/sources/gnome-desktop/
+
 # Prerequisite: libseccomp (get from SBo)
+
+# Tested with
 
 set -e
 
-VERSION=${VERSION:-3.32.1}
+PRGNAM=gnome-desktop
+
+VERSION=${VERSION:-$(echo $PRGNAM-*.tar.?z | rev | cut -f 3- -d . | cut -f 1 -d - | rev)}
 
 BUILD=${BUILD:-1}
 TAG=${TAG:-dc}
 TMP=${TMP:-/tmp}
 
-PRGNAM=gnome-desktop
 
 PKG="$TMP/package-$PRGNAM"
 
@@ -27,7 +33,7 @@ CWD="$(pwd)"
 rm -rf "$PKG" "$TMP/$PRGNAM-$VERSION"
 
 cd "$TMP"
-tar xvf "$CWD/$PRGNAM-$VERSION.tar.bz2"
+tar xvf "$CWD/$PRGNAM-$VERSION.tar.xz"
 
 cd "$PRGNAM-$VERSION"
 
