@@ -1,0 +1,64 @@
+#!/bin/env bash
+
+set -e
+
+PRGNAM=playerctl
+
+BUILD=1
+TAG=dc
+
+TMP=${TMP:-/tmp}
+PKG="$TMP/package-$PRGNAM"
+
+if [[ -z $ARCH ]]; then
+	case $( uname -m ) in
+		i?86) ARCH=i486 ;;
+		arm*) ARCH=arm ;;
+		*) ARCH=$( uname -m ) ;;
+	esac
+fi
+
+
+HEADER="Accept: application/vnd.github.v3.raw+json"
+PARSER=$(cat <<-END
+import json
+import sys
+print(next(release['tag_name'] for release in json.load(sys.stdin)))
+END
+)
+ENDPOINT="https://api.github.com/repos/acrisci/playerctl/releases"
+
+GITTAG=$(curl -H "$HEADER" "$ENDPOINT" | python -c "$PARSER")
+VERSION=${GITTAG:1}
+
+rm -rf "$PKG"
+rm -rf "$TMP/$PRGNAM-$VERSION"
+rm -f "${TMP}/${PRGNAM}-${VERSION}.tar.gz"
+
+cd "$TMP"
+
+wget --content-disposition "https://github.com/acrisci/$PRGNAM/archive/$GITTAG.tar.gz"
+tar xvf "$PRGNAM-${VERSION}.tar.gz"
+
+cd "${PRGNAM}-${VERSION}"
+
+chown -R root:root .
+find -L . \
+	\( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+	-o -perm 511 \) -exec chmod 755 {} \; -o \
+	\( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+	-o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+meson --prefix=/usr --mandir=/usr/man . output/release --buildtype=debugoptimized -Db_ndebug=true
+ninja -C output/release
+DESTDIR=$PKG ninja -C output/release install
+
+
+find "$PKG" -print0 | xargs -0 file | grep -e "executable" -e "shared object" | grep ELF \
+	| cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+mkdir -p "$PKG/install"
+wget -O "$PKG/install/slack-desc" https://raw.githubusercontent.com/Ponce/slackbuilds/master/multimedia/playerctl/slack-desc
+
+cd "$PKG"
+/sbin/makepkg -l y -c n "${TMP}/${PRGNAM}-${VERSION}-${ARCH}-${BUILD}${TAG}.txz"
