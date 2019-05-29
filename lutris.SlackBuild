@@ -43,8 +43,6 @@ END
 # https://github.com/lutris/lutris/issues/2018
 ENDPOINT="https://api.github.com/repos/$PRGNAM/$PRGNAM/tags"
 
-curl -H "$HEADER" "$ENDPOINT" | python3 -c "$PARSER"
-
 GITTAG=$(curl -H "$HEADER" "$ENDPOINT" | python -c "$PARSER")
 VERSION=${GITTAG:1}
 
