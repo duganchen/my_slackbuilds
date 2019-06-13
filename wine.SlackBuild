@@ -6,6 +6,11 @@
 #
 # This is based on the SBo SlackBuild.
 
+# Set STAGING=true to build with the wine-staging patches.
+
+# Set STAGING=faudio to build with wine-staging but omit its patch
+# to revert faudio and use its own xaudio implementation.
+
 set -e
 
 BUILD=${BUILD:-1}
@@ -13,6 +18,8 @@ TAG=${TAG:-dc}
 TMP=${TMP:-/tmp}
 PKG=$TMP/package-wine
 BRANCH=${BRANCH:-4.x}
+
+STAGING=${STAGING:-false}
 
 if [[ -z $ARCH ]]; then
   case $( uname -m ) in
@@ -62,10 +69,37 @@ wget https://raw.githubusercontent.com/Ponce/slackbuilds/master/system/wine/slac
 
 tar xvf "wine-${VERSION}.tar.xz"
 
-wget --content-disposition "https://github.com/wine-staging/wine-staging/archive/v$VERSION.tar.gz"
-tar xvf "wine-staging-${VERSION}.tar.gz"
-cd "wine-staging-$VERSION/patches"
-./patchinstall.sh --all DESTDIR="$TMP/wine_src/wine-$VERSION"
+OPTS=""
+
+
+if [[ "$STAGING" != "false" ]]; then
+  wget --content-disposition "https://github.com/wine-staging/wine-staging/archive/v$VERSION.tar.gz"
+
+  tar xvf "wine-staging-${VERSION}.tar.gz"
+  cd "wine-staging-$VERSION/patches"
+
+  # The builds fail for me unless I disable GTK3 support.
+  # As they say on tvtropes: YMMV.
+  OPTS="--without-gtk3"
+
+  # https://www.phoronix.com/forums/forum/software/desktop-linux/1083896-wine-staging-4-3-sees-more-work-upstreamed-while-adding-in-a-number-of-new-patches?p=1083926#post1083926
+  if [[ "$STAGING" == "faudio" ]]; then
+    /patchinstall.sh \
+      --all \
+      DESTDIR="$TMP/wine_src/wine-$VERSION" \
+      -W xaudio2-revert \
+      -W xaudio2_CommitChanges \
+      -W xaudio2_7-WMA_support \
+      -W xaudio2_7-CreateFX-FXEcho
+  else
+    ./patchinstall.sh --all DESTDIR="$TMP/wine_src/wine-$VERSION"
+  fi
+fi
+
+if [[ "$STAGING" == "faudio" ]]; then
+  OPTS=""
+fi
+
 
 cd "$TMP/wine_src/wine-$VERSION"
 
@@ -78,8 +112,6 @@ find -L . \
 
 autoreconf -vif
 
-# The builds fail for me unless I disable GTK3 support.
-# As they say on tvtropes: YMMV.
 
 mkdir "$TMP/wine_src/win64-build"
 cd "$TMP/wine_src/win64-build"
@@ -92,7 +124,7 @@ CFLAGS="$SLKCFLAGS" \
   --docdir=/usr/doc/wine-"$VERSION" \
   --disable-tests \
   --build="$ARCH"-slackware-linux \
-  --without-gtk3
+  "$OPTS"
 
 make
 
@@ -108,7 +140,7 @@ CFLAGS="$SLKCFLAGS" \
   --disable-tests \
   --build="$ARCH"-slackware-linux \
   --with-wine64=../win64-build \
-  --without-gtk3
+  "$OPTS"
 
 make
 
