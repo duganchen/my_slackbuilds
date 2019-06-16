@@ -96,11 +96,6 @@ if [[ "$STAGING" != "false" ]]; then
   fi
 fi
 
-if [[ "$STAGING" == "faudio" ]]; then
-  OPTS=""
-fi
-
-
 cd "$TMP/wine_src/wine-$VERSION"
 
 chown -R root:root .
