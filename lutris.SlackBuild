@@ -13,6 +13,9 @@ set -e
 # Another gnome-desktop SlackBuild is here:
 # https://gitlab.com/gbschenkel/slackbuilds/tree/current/libraries/gnome-desktop
 
+# Have Python3-evdev installed.
+# pip3 install evdev --user
+
 PRGNAM=lutris
 
 BUILD=1

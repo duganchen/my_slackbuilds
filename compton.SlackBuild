@@ -2,7 +2,8 @@
 
 set -e
 
-REPO=https://github.com/tryone144/compton
+REPO=https://github.com/chjj/compton.git
+# REPO=https://github.com/tryone144/compton
 PRGNAM=$(basename $REPO .git)
 TMP=${TMP:-/tmp}
 PKG=$TMP/package-$PRGNAM
