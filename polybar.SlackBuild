@@ -42,6 +42,5 @@ cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release
 make install DESTDIR="$PKG"
 cd "$PKG"
-mv usr/share/{doc,man} usr
-gzip -9 usr/man/man1/polybar.1
+mv usr/share/doc usr
 /sbin/makepkg -l y -c n "$TMP/polybar-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}"
