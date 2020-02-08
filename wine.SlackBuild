@@ -8,9 +8,6 @@
 
 # Set STAGING=true to build with the wine-staging patches.
 
-# Set STAGING=faudio to build with wine-staging but omit its patch
-# to revert faudio and use its own xaudio implementation.
-
 set -e
 
 BUILD=${BUILD:-1}
@@ -81,19 +78,7 @@ if [[ "$STAGING" != "false" ]]; then
   # The builds fail for me unless I disable GTK3 support.
   # As they say on tvtropes: YMMV.
   OPTS="--without-gtk3"
-
-  # https://www.phoronix.com/forums/forum/software/desktop-linux/1083896-wine-staging-4-3-sees-more-work-upstreamed-while-adding-in-a-number-of-new-patches?p=1083926#post1083926
-  if [[ "$STAGING" == "faudio" ]]; then
-    /patchinstall.sh \
-      --all \
-      DESTDIR="$TMP/wine_src/wine-$VERSION" \
-      -W xaudio2-revert \
-      -W xaudio2_CommitChanges \
-      -W xaudio2_7-WMA_support \
-      -W xaudio2_7-CreateFX-FXEcho
-  else
-    ./patchinstall.sh --all DESTDIR="$TMP/wine_src/wine-$VERSION"
-  fi
+  ./patchinstall.sh --all DESTDIR="$TMP/wine_src/wine-$VERSION"
 fi
 
 cd "$TMP/wine_src/wine-$VERSION"
