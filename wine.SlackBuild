@@ -14,7 +14,7 @@ BUILD=${BUILD:-1}
 TAG=${TAG:-dc}
 TMP=${TMP:-/tmp}
 PKG=$TMP/package-wine
-BRANCH=${BRANCH:-5.x}
+BRANCH=${BRANCH:-6.x}
 
 STAGING=${STAGING:-false}
 
